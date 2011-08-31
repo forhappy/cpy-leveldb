@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright (c) Arni Mar Jonsson.
+# Copyright (c) 2011 Fu Haiping.
 # See LICENSE for details.
 
 import sys
