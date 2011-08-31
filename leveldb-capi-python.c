@@ -25,8 +25,12 @@
 #define _XDECREF(ptr) do { if ((ptr) != NULL) free((ptr));} while(0)
 #endif
 
+#define LEVELDB_DEFINE_KVBUF(buf) const char * s_##buf = NULL; size_t i_##buf
+
 PyTypeObject WriteBatchType;
 PyTypeObject LevelDBType;
+PyTypeObject SnapshotType;
+PyTypeObject IteratorType;
 
 typedef struct {
 	PyObject_HEAD
@@ -34,8 +38,6 @@ typedef struct {
 	leveldb_options_t *_options;
 	leveldb_cache_t *_cache;
 	leveldb_env_t *_env;
-
-	leveldb_snapshot_t *_snapshot;
 
 	leveldb_iterator_t *_iterator;
 
@@ -46,6 +48,11 @@ typedef struct {
 	leveldb_writebatch_t *_writebatch;
 }WriteBatch;
 
+typedef struct {
+	PyObject_HEAD
+	leveldb_snapshot_t *_snapshot;
+} Snapshot;
+
 static void LevelDB_dealloc(LevelDB* self)
 {
 	Py_BEGIN_ALLOW_THREADS
@@ -53,7 +60,6 @@ static void LevelDB_dealloc(LevelDB* self)
 	_XDECREF(self->_options);
 	_XDECREF(self->_cache);
 	_XDECREF(self->_env);
-	_XDECREF(self->_snapshot);
 	_XDECREF(self->_iterator);
 	Py_END_ALLOW_THREADS
 
@@ -61,7 +67,6 @@ static void LevelDB_dealloc(LevelDB* self)
 	self->_options = NULL;
 	self->_cache = NULL;
 	self->_env = NULL;
-	self->_snapshot = NULL;
 	self->_iterator = NULL;
 
 	self->ob_type->tp_free((PyObject *)self);
@@ -80,16 +85,31 @@ static void WriteBatch_dealloc(WriteBatch* self)
 
 	self->ob_type->tp_free(self);
 }
+
+
+static void Snapshot_dealloc(Snapshot* self)
+{
+	Py_BEGIN_ALLOW_THREADS
+
+	_XDECREF(self->_snapshot);
+
+	Py_END_ALLOW_THREADS
+
+	self->_snapshot = NULL;
+
+	self->ob_type->tp_free(self);
+}
+
+
 static PyObject* LevelDB_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
-	LevelDB* self = (LevelDB*)type->tp_alloc(type, 0);
+	LevelDB* self = (LevelDB *)type->tp_alloc(type, 0);
 
 	if (self != NULL) {
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-		self->_snapshot = NULL;
 		self->_iterator = NULL;
 	}
 
@@ -98,10 +118,20 @@ static PyObject* LevelDB_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 
 static PyObject* WriteBatch_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
-	WriteBatch* self = (WriteBatch*)type->tp_alloc(type, 0);
+	WriteBatch* self = (WriteBatch *)type->tp_alloc(type, 0);
 
 	if (self != NULL) {
 		self->_writebatch = NULL;
+	}
+	return (PyObject*)self;
+}
+
+static PyObject* Snapshot_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+{
+	Snapshot * self = (Snapshot *)type->tp_alloc(type, 0);
+
+	if (self != NULL) {
+		self->_snapshot= NULL;
 	}
 	return (PyObject*)self;
 }
@@ -110,21 +140,18 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	// cleanup
 	if (self->_db || self->_cache || self->_options
-			|| self->_env || self->_snapshot 
-			|| self->_iterator) {
+			|| self->_env || self->_iterator) {
 		Py_BEGIN_ALLOW_THREADS
 		_XDECREF(self->_db);
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
-		_XDECREF(self->_snapshot);
 		_XDECREF(self->_iterator);
 		Py_END_ALLOW_THREADS
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-		self->_snapshot = NULL;
 		self->_iterator = NULL;
 	}
 
@@ -158,12 +185,11 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		return -1;
 	}
 
-	/* initializing LeveldbType fields */
+	/* initializing LevelDBType fields */
 	self->_options = leveldb_options_create(); 
 	self->_cache = leveldb_cache_create_lru(block_cache_size); 
 	self->_env = leveldb_create_default_env();
 
-	self->_snapshot = NULL;
 	self->_iterator = NULL;
 
 	if (self->_options == NULL || self->_cache == NULL
@@ -210,7 +236,6 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	Py_END_ALLOW_THREADS
 	return 0;
 }
-#define LEVELDB_DEFINE_KVBUF(buf) const char * s_##buf = NULL; size_t i_##buf
 
 static int WriteBatch_init(WriteBatch* self, PyObject* args, PyObject* kwds)
 {
@@ -232,6 +257,34 @@ static int WriteBatch_init(WriteBatch* self, PyObject* args, PyObject* kwds)
 
 	return 0;
 }
+
+static int Snapshot_init(Snapshot* self, PyObject* args, PyObject* kwds)
+{
+	static char* kwargs[] = {"leveldb", 0};
+	LevelDB *leveldb = NULL;
+	const leveldb_snapshot_t *snapshot = NULL;
+
+	if (self->_snapshot) {
+		Py_BEGIN_ALLOW_THREADS
+		_XDECREF(self->_snapshot);
+		Py_END_ALLOW_THREADS
+		
+		self->_snapshot= NULL;
+	}
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, (const char*)"O!", kwargs, &LevelDBType, &leveldb))
+		return -1;
+	if (leveldb != NULL) {
+		printf("Snapshot_init executed.\n");
+		snapshot = leveldb_create_snapshot(leveldb->_db);
+		self->_snapshot = snapshot;
+	}
+	if (self->_snapshot== NULL) {
+		fprintf(stderr, "Failed to create snapshot.\n");
+	}
+
+	return 0;
+}
+
 static PyObject* LevelDB_Put(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	const char* kwargs[] = {"key", "value", "sync", 0};
@@ -474,14 +527,12 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
-		_XDECREF(self->_snapshot);
 		_XDECREF(self->_iterator);
 
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-		self->_snapshot = NULL;
 		self->_iterator = NULL;
 		fprintf(stderr, "error occurs in opening leveldb:\n\t%s\n", err);
 	}
@@ -492,19 +543,26 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 	return Py_None;
 }
 
-static PyObject * LevelDB_Create_Snapshot(LevelDB *self, PyObject *args)
+static PyObject * Snapshot_Set(Snapshot *self, PyObject *args)
 {
-	const leveldb_snapshot_t *snapshot;
-	snapshot = leveldb_create_snapshot(self->_db);
-	self->_snapshot = snapshot;
-	if (self->_snapshot == NULL) {
-		fprintf(stderr, "Failed to create snapshot\n");
+	leveldb_readoptions_t *roptions = NULL;
+	roptions = leveldb_readoptions_create();
+	if (roptions == NULL) {
+		fprintf(stderr, "Failed to create readoptions.\n");
 	}
+
+	if (self->_snapshot != NULL) {
+		leveldb_readoptions_set_snapshot(roptions, self->_snapshot);
+		printf("Set snapshot successfully.\n");
+	} else {
+		fprintf(stderr, "Unable to set snapshot.\n");
+	}
+
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
-static PyObject * LevelDB_Active_Snapshot(LevelDB *self, PyObject *args)
+static PyObject * Snapshot_Reset(Snapshot *self, PyObject *args)
 {
 
 	leveldb_readoptions_t *roptions = NULL;
@@ -512,27 +570,22 @@ static PyObject * LevelDB_Active_Snapshot(LevelDB *self, PyObject *args)
 	if (roptions == NULL) {
 		fprintf(stderr, "Failed to create readoptions.\n");
 	}
-	leveldb_readoptions_set_snapshot(roptions, self->_snapshot);
-	Py_INCREF(Py_None);
-	return Py_None;
-}
 
-static PyObject * LevelDB_Reset_Snapshot(LevelDB *self, PyObject *args)
-{
-
-	leveldb_readoptions_t *roptions = NULL;
-	roptions = leveldb_readoptions_create();
-	if (roptions == NULL) {
-		fprintf(stderr, "Failed to create readoptions.\n");
-	}
 	leveldb_readoptions_set_snapshot(roptions, NULL);
+
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
-static PyObject * LevelDB_Release_Snapshot(LevelDB *self, PyObject *args)
+static PyObject * Snapshot_Release(Snapshot *self, PyObject *args)
 {
-	leveldb_release_snapshot(self->_db, self->_snapshot);
+	LevelDB *leveldb = NULL;
+	if (!PyArg_ParseTuple(args, (const char *)"O!", &LevelDBType, &leveldb)) 
+		return -1;
+	if (leveldb != NULL) {
+		printf("Snapshot_Release executed.\n");
+		leveldb_release_snapshot(leveldb->_db, self->_snapshot);
+	}
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -661,11 +714,6 @@ static PyMethodDef LevelDB_methods[] = {
 	{(char*)"IterValue",    (PyCFunction)LevelDB_Iter_Value,    METH_KEYWORDS, (char*)"get value throuth current iterator" },
 	{(char*)"IterGetError",    (PyCFunction)LevelDB_Iter_Get_Error,    METH_KEYWORDS, (char*)"get iterator error" },
 
-	{(char*)"CreateSnapshot",    (PyCFunction)LevelDB_Create_Snapshot,    METH_KEYWORDS, (char*)"create a snapshot" },
-	{(char*)"ActiveSnapshot",    (PyCFunction)LevelDB_Active_Snapshot,    METH_KEYWORDS, (char*)"active snapshot" },
-	{(char*)"ResetSnapshot",    (PyCFunction)LevelDB_Reset_Snapshot,    METH_KEYWORDS, (char*)"reset snapshot" },
-	{(char*)"ReleaseSnapshot",    (PyCFunction)LevelDB_Release_Snapshot,    METH_KEYWORDS, (char*)"release snapshot" },
-	
 	{(char*)"Close",    (PyCFunction)LevelDB_Close,    METH_KEYWORDS, (char*)"close database" },
 	{NULL}
 };
@@ -677,6 +725,14 @@ static PyMethodDef WriteBatch_methods[] = {
 	{(char*)"Release",    (PyCFunction)WriteBatch_Release,    METH_VARARGS, (char*)"release a batch" },
 	{NULL}
 };
+
+static PyMethodDef Snapshot_methods[] = {
+	{(char*)"Set",    (PyCFunction)Snapshot_Set,    METH_VARARGS, (char*)"set snapshot" },
+	{(char*)"Reset", (PyCFunction)Snapshot_Reset, METH_VARARGS, (char*)"reset snapshot to the current state" },
+	{(char*)"Release",    (PyCFunction)Snapshot_Release,    METH_VARARGS, (char*)"release snapshot" },
+	{NULL}
+};
+
 PyTypeObject LevelDBType = {
 	PyObject_HEAD_INIT(NULL)
 	0,                             /*ob_size*/
@@ -724,7 +780,7 @@ PyTypeObject WriteBatchType = {
 	PyObject_HEAD_INIT(NULL)
 	0,                             /*ob_size*/
 	(char*)"leveldb.WriteBatch",      /*tp_name*/
-	sizeof(LevelDB),             /*tp_basicsize*/
+	sizeof(WriteBatch),             /*tp_basicsize*/
 	0,                             /*tp_itemsize*/
 	(destructor)WriteBatch_dealloc, /*tp_dealloc*/
 	0,                             /*tp_print*/
@@ -762,8 +818,51 @@ PyTypeObject WriteBatchType = {
 	WriteBatch_new,                 /*tp_new */
 };
 
+PyTypeObject SnapshotType = {
+	PyObject_HEAD_INIT(NULL)
+	0,                             /*ob_size*/
+	(char*)"leveldb.Snapshot",      /*tp_name*/
+	sizeof(Snapshot),             /*tp_basicsize*/
+	0,                             /*tp_itemsize*/
+	(destructor)Snapshot_dealloc, /*tp_dealloc*/
+	0,                             /*tp_print*/
+	0,                             /*tp_getattr*/
+	0,                             /*tp_setattr*/
+	0,                             /*tp_compare*/
+	0,                             /*tp_repr*/
+	0,                             /*tp_as_number*/
+	0,                             /*tp_as_sequence*/
+	0,                             /*tp_as_mapping*/
+	0,                             /*tp_hash */
+	0,                             /*tp_call*/
+	0,                             /*tp_str*/
+	0,                             /*tp_getattro*/
+	0,                             /*tp_setattro*/
+	0,                             /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,            /*tp_flags*/
+	(char*)"leveldb Snapshot",   /*tp_doc */
+	0,                             /*tp_traverse */
+	0,                             /*tp_clear */
+	0,                             /*tp_richcompare */
+	0,                             /*tp_weaklistoffset */
+	0,                             /*tp_iter */
+	0,                             /*tp_iternext */
+	Snapshot_methods,             /*tp_methods */
+	0,                             /*tp_members */
+	0,                             /*tp_getset */
+	0,                             /*tp_base */
+	0,                             /*tp_dict */
+	0,                             /*tp_descr_get */
+	0,                             /*tp_descr_set */
+	0,                             /*tp_dictoffset */
+	(initproc)Snapshot_init,      /*tp_init */
+	0,                             /*tp_alloc */
+	Snapshot_new,                 /*tp_new */
+};
+
 #define LevelDB_Check(op) PyObject_TypeCheck(op, &LevelDBType)
-#define LevelDB_Check(op) PyObject_TypeCheck(op, &LevelDBType)
+#define WriteBatch_Check(op) PyObject_TypeCheck(op, &WriteBatchType)
+#define Snapshot_Check(op) PyObject_TypeCheck(op, &SnapshotType)
 
 PyMODINIT_FUNC
 initleveldb(void)
@@ -779,6 +878,9 @@ initleveldb(void)
 	if (PyType_Ready(&WriteBatchType) < 0)
 		return;
 
+	if (PyType_Ready(&SnapshotType) < 0)
+		return;
+
 	// add custom types to the different modules
 	Py_INCREF(&LevelDBType);
 	if (PyModule_AddObject(leveldb_module, (char*)"LevelDB", (PyObject*)&LevelDBType) != 0)
@@ -786,5 +888,9 @@ initleveldb(void)
 
 	Py_INCREF(&WriteBatchType);
 	if (PyModule_AddObject(leveldb_module, (char*)"WriteBatch", (PyObject*)&WriteBatchType) != 0)
+		return;
+
+	Py_INCREF(&SnapshotType);
+	if (PyModule_AddObject(leveldb_module, (char*)"Snapshot", (PyObject*)&SnapshotType) != 0)
 		return;
 }
