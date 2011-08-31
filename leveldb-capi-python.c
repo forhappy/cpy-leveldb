@@ -731,6 +731,15 @@ static PyObject * Iterator_Value(Iterator *self, PyObject *args)
 	return result;
 }
 
+
+static PyObject * Iterator_Destroy(Iterator *self, PyObject *args)
+{
+
+	leveldb_iter_destroy(self->_iterator);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyMethodDef LevelDB_methods[] = {
 	{(char*)"Put",       (PyCFunction)LevelDB_Put,       METH_KEYWORDS, (char*)"add a key/value pair to database, with an optional synchronous disk write" },
 	{(char*)"Get",       (PyCFunction)LevelDB_Get,       METH_KEYWORDS, (char*)"get a value from the database" },
@@ -768,6 +777,7 @@ static PyMethodDef Iterator_methods[] = {
 	{(char*)"Key",    (PyCFunction)Iterator_Key,    METH_KEYWORDS, (char*)"get key throuth current iterator" },
 	{(char*)"Value",    (PyCFunction)Iterator_Value,    METH_KEYWORDS, (char*)"get value throuth current iterator" },
 	{(char*)"GetError",    (PyCFunction)Iterator_Get_Error,    METH_KEYWORDS, (char*)"get iterator error" },
+	{(char*)"Destroy",    (PyCFunction)Iterator_Destroy,    METH_KEYWORDS, (char*)"destroy iterator" },
 	{NULL}
 };
 
