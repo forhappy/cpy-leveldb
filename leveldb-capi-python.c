@@ -38,9 +38,6 @@ typedef struct {
 	leveldb_options_t *_options;
 	leveldb_cache_t *_cache;
 	leveldb_env_t *_env;
-
-	leveldb_iterator_t *_iterator;
-
 } LevelDB;
 
 typedef struct {
@@ -50,8 +47,13 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-	leveldb_snapshot_t *_snapshot;
+	const leveldb_snapshot_t *_snapshot;
 } Snapshot;
+
+typedef struct {
+	PyObject_HEAD
+	leveldb_iterator_t *_iterator;
+} Iterator;
 
 static void LevelDB_dealloc(LevelDB* self)
 {
@@ -60,14 +62,12 @@ static void LevelDB_dealloc(LevelDB* self)
 	_XDECREF(self->_options);
 	_XDECREF(self->_cache);
 	_XDECREF(self->_env);
-	_XDECREF(self->_iterator);
 	Py_END_ALLOW_THREADS
 
 	self->_db = NULL;
 	self->_options = NULL;
 	self->_cache = NULL;
 	self->_env = NULL;
-	self->_iterator = NULL;
 
 	self->ob_type->tp_free((PyObject *)self);
 }
@@ -87,15 +87,28 @@ static void WriteBatch_dealloc(WriteBatch* self)
 }
 
 
-static void Snapshot_dealloc(Snapshot* self)
+static void Snapshot_dealloc(Snapshot *self)
 {
 	Py_BEGIN_ALLOW_THREADS
 
-	_XDECREF(self->_snapshot);
+	_XDECREF((void *)self->_snapshot);
 
 	Py_END_ALLOW_THREADS
 
 	self->_snapshot = NULL;
+
+	self->ob_type->tp_free(self);
+}
+
+static void Iterator_dealloc(Iterator *self)
+{
+	Py_BEGIN_ALLOW_THREADS
+
+	_XDECREF(self->_iterator);
+
+	Py_END_ALLOW_THREADS
+
+	self->_iterator = NULL;
 
 	self->ob_type->tp_free(self);
 }
@@ -110,7 +123,6 @@ static PyObject* LevelDB_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-		self->_iterator = NULL;
 	}
 
 	return (PyObject*)self;
@@ -136,23 +148,32 @@ static PyObject* Snapshot_new(PyTypeObject* type, PyObject* args, PyObject* kwds
 	return (PyObject*)self;
 }
 
+
+static PyObject* Iterator_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+{
+	Iterator * self = (Iterator *)type->tp_alloc(type, 0);
+
+	if (self != NULL) {
+		self->_iterator= NULL;
+	}
+	return (PyObject*)self;
+}
+
 static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	// cleanup
 	if (self->_db || self->_cache || self->_options
-			|| self->_env || self->_iterator) {
+			|| self->_env ) {
 		Py_BEGIN_ALLOW_THREADS
 		_XDECREF(self->_db);
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
-		_XDECREF(self->_iterator);
 		Py_END_ALLOW_THREADS
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-		self->_iterator = NULL;
 	}
 
 	/* arguments */
@@ -189,8 +210,6 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	self->_options = leveldb_options_create(); 
 	self->_cache = leveldb_cache_create_lru(block_cache_size); 
 	self->_env = leveldb_create_default_env();
-
-	self->_iterator = NULL;
 
 	if (self->_options == NULL || self->_cache == NULL
 			|| self->_env == NULL) {
@@ -266,7 +285,7 @@ static int Snapshot_init(Snapshot* self, PyObject* args, PyObject* kwds)
 
 	if (self->_snapshot) {
 		Py_BEGIN_ALLOW_THREADS
-		_XDECREF(self->_snapshot);
+		_XDECREF((void *)self->_snapshot);
 		Py_END_ALLOW_THREADS
 		
 		self->_snapshot= NULL;
@@ -285,6 +304,39 @@ static int Snapshot_init(Snapshot* self, PyObject* args, PyObject* kwds)
 	return 0;
 }
 
+static int Iterator_init(Iterator *self, PyObject* args, PyObject* kwds)
+{
+	static char* kwargs[] = {"leveldb", 0};
+	LevelDB *leveldb = NULL;
+	leveldb_iterator_t *iterator = NULL;
+	leveldb_readoptions_t *roptions = NULL;
+
+	if (self->_iterator) {
+		Py_BEGIN_ALLOW_THREADS
+		_XDECREF(self->_iterator);
+		Py_END_ALLOW_THREADS
+		
+		self->_iterator= NULL;
+	}
+
+	roptions = leveldb_readoptions_create();
+	if (roptions == NULL) {
+		fprintf(stderr, "Failed to create readoptions.\n");
+	}
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, (const char*)"O!", kwargs, &LevelDBType, &leveldb))
+		return -1;
+	if (leveldb != NULL) {
+		printf("Iterator_init executed.\n");
+		iterator = leveldb_create_iterator(leveldb->_db, roptions);
+		self->_iterator = iterator;
+	}
+	if (self->_iterator == NULL) {
+		fprintf(stderr, "Failed to create snapshot.\n");
+	}
+
+	return 0;
+}
 static PyObject* LevelDB_Put(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	const char* kwargs[] = {"key", "value", "sync", 0};
@@ -527,13 +579,11 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
-		_XDECREF(self->_iterator);
 
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-		self->_iterator = NULL;
 		fprintf(stderr, "error occurs in opening leveldb:\n\t%s\n", err);
 	}
 
@@ -590,20 +640,7 @@ static PyObject * Snapshot_Release(Snapshot *self, PyObject *args)
 	return Py_None;
 }
 
-static PyObject * LevelDB_CreateIter(LevelDB *self, PyObject *args)
-{
-	leveldb_readoptions_t *roptions = NULL;
-	roptions = leveldb_readoptions_create();
-
-	self->_iterator = leveldb_create_iterator(self->_db, roptions);
-	if(self->_iterator == NULL) {
-		fprintf(stderr, "Failed to create iterator\n");
-	}
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-static PyObject * LevelDB_Iter_Valid(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Valid(Iterator *self, PyObject *args)
 {
 	PyObject *result;
 	unsigned char valid;
@@ -612,29 +649,28 @@ static PyObject * LevelDB_Iter_Valid(LevelDB *self, PyObject *args)
 	return result;
 }
 
-static PyObject * LevelDB_Iter_Seek_To_First(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Seek_To_First(Iterator *self, PyObject *args)
 {
 	leveldb_iter_seek_to_first(self->_iterator);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
-static PyObject * LevelDB_Iter_Seek_To_Last(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Seek_To_Last(Iterator *self, PyObject *args)
 {
 	leveldb_iter_seek_to_last(self->_iterator);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
-static PyObject * LevelDB_Iter_Next(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Next(Iterator *self, PyObject *args)
 {
 	leveldb_iter_next(self->_iterator);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
-
-static PyObject * LevelDB_Iter_Prev(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Prev(Iterator *self, PyObject *args)
 {
 	leveldb_iter_prev(self->_iterator);
 	Py_INCREF(Py_None);
@@ -642,7 +678,7 @@ static PyObject * LevelDB_Iter_Prev(LevelDB *self, PyObject *args)
 }
 
 
-static PyObject * LevelDB_Iter_Seek(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Seek(Iterator *self, PyObject *args)
 {
 
 	LEVELDB_DEFINE_KVBUF(key);
@@ -656,7 +692,7 @@ static PyObject * LevelDB_Iter_Seek(LevelDB *self, PyObject *args)
 }
 
 
-static PyObject * LevelDB_Iter_Get_Error(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Get_Error(Iterator *self, PyObject *args)
 {
 
 	PyObject *result;
@@ -670,7 +706,7 @@ static PyObject * LevelDB_Iter_Get_Error(LevelDB *self, PyObject *args)
 
 
 
-static PyObject * LevelDB_Iter_Key(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Key(Iterator *self, PyObject *args)
 {
 
 	PyObject *result;
@@ -683,7 +719,7 @@ static PyObject * LevelDB_Iter_Key(LevelDB *self, PyObject *args)
 }
 
 
-static PyObject * LevelDB_Iter_Value(LevelDB *self, PyObject *args)
+static PyObject * Iterator_Value(Iterator *self, PyObject *args)
 {
 
 	PyObject *result;
@@ -702,18 +738,6 @@ static PyMethodDef LevelDB_methods[] = {
 	{(char*)"Write",    (PyCFunction)LevelDB_Write,    METH_KEYWORDS, (char*)"apply a writebatch in database" },
 	{(char*)"Property",    (PyCFunction)LevelDB_Property,    METH_KEYWORDS, (char*)"get a property value" },
 	{(char*)"RepairDB",    (PyCFunction)LevelDB_RepairDB,    METH_KEYWORDS, (char*)"repair database" },
-
-	{(char*)"CreateIter",    (PyCFunction)LevelDB_CreateIter,    METH_KEYWORDS, (char*)"create iterator" },
-	{(char*)"IterValid",    (PyCFunction)LevelDB_Iter_Valid,    METH_KEYWORDS, (char*)"validate iterator" },
-	{(char*)"IterFirst",    (PyCFunction)LevelDB_Iter_Seek_To_First,    METH_KEYWORDS, (char*)"seek to first" },
-	{(char*)"IterLast",    (PyCFunction)LevelDB_Iter_Seek_To_Last,    METH_KEYWORDS, (char*)"seek to last" },
-	{(char*)"IterSeek",    (PyCFunction)LevelDB_Iter_Seek,    METH_KEYWORDS, (char*)"iterator seek" },
-	{(char*)"IterNext",    (PyCFunction)LevelDB_Iter_Next,    METH_KEYWORDS, (char*)"iterator to next" },
-	{(char*)"IterPrev",    (PyCFunction)LevelDB_Iter_Prev,    METH_KEYWORDS, (char*)"iterator to prev" },
-	{(char*)"IterKey",    (PyCFunction)LevelDB_Iter_Key,    METH_KEYWORDS, (char*)"get key throuth current iterator" },
-	{(char*)"IterValue",    (PyCFunction)LevelDB_Iter_Value,    METH_KEYWORDS, (char*)"get value throuth current iterator" },
-	{(char*)"IterGetError",    (PyCFunction)LevelDB_Iter_Get_Error,    METH_KEYWORDS, (char*)"get iterator error" },
-
 	{(char*)"Close",    (PyCFunction)LevelDB_Close,    METH_KEYWORDS, (char*)"close database" },
 	{NULL}
 };
@@ -730,6 +754,20 @@ static PyMethodDef Snapshot_methods[] = {
 	{(char*)"Set",    (PyCFunction)Snapshot_Set,    METH_VARARGS, (char*)"set snapshot" },
 	{(char*)"Reset", (PyCFunction)Snapshot_Reset, METH_VARARGS, (char*)"reset snapshot to the current state" },
 	{(char*)"Release",    (PyCFunction)Snapshot_Release,    METH_VARARGS, (char*)"release snapshot" },
+	{NULL}
+};
+
+
+static PyMethodDef Iterator_methods[] = {
+	{(char*)"Validate",    (PyCFunction)Iterator_Valid,    METH_KEYWORDS, (char*)"validate iterator" },
+	{(char*)"First",    (PyCFunction)Iterator_Seek_To_First,    METH_KEYWORDS, (char*)"seek to first" },
+	{(char*)"Last",    (PyCFunction)Iterator_Seek_To_Last,    METH_KEYWORDS, (char*)"seek to last" },
+	{(char*)"Seek",    (PyCFunction)Iterator_Seek,    METH_KEYWORDS, (char*)"iterator seek" },
+	{(char*)"Next",    (PyCFunction)Iterator_Next,    METH_KEYWORDS, (char*)"iterator to next" },
+	{(char*)"Prev",    (PyCFunction)Iterator_Prev,    METH_KEYWORDS, (char*)"iterator to prev" },
+	{(char*)"Key",    (PyCFunction)Iterator_Key,    METH_KEYWORDS, (char*)"get key throuth current iterator" },
+	{(char*)"Value",    (PyCFunction)Iterator_Value,    METH_KEYWORDS, (char*)"get value throuth current iterator" },
+	{(char*)"GetError",    (PyCFunction)Iterator_Get_Error,    METH_KEYWORDS, (char*)"get iterator error" },
 	{NULL}
 };
 
@@ -860,10 +898,51 @@ PyTypeObject SnapshotType = {
 	Snapshot_new,                 /*tp_new */
 };
 
+PyTypeObject IteratorType = {
+	PyObject_HEAD_INIT(NULL)
+	0,                             /*ob_size*/
+	(char*)"leveldb.Iterator",      /*tp_name*/
+	sizeof(Iterator),             /*tp_basicsize*/
+	0,                             /*tp_itemsize*/
+	(destructor)Iterator_dealloc, /*tp_dealloc*/
+	0,                             /*tp_print*/
+	0,                             /*tp_getattr*/
+	0,                             /*tp_setattr*/
+	0,                             /*tp_compare*/
+	0,                             /*tp_repr*/
+	0,                             /*tp_as_number*/
+	0,                             /*tp_as_sequence*/
+	0,                             /*tp_as_mapping*/
+	0,                             /*tp_hash */
+	0,                             /*tp_call*/
+	0,                             /*tp_str*/
+	0,                             /*tp_getattro*/
+	0,                             /*tp_setattro*/
+	0,                             /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,            /*tp_flags*/
+	(char*)"leveldb Iterator",   /*tp_doc */
+	0,                             /*tp_traverse */
+	0,                             /*tp_clear */
+	0,                             /*tp_richcompare */
+	0,                             /*tp_weaklistoffset */
+	0,                             /*tp_iter */
+	0,                             /*tp_iternext */
+	Iterator_methods,             /*tp_methods */
+	0,                             /*tp_members */
+	0,                             /*tp_getset */
+	0,                             /*tp_base */
+	0,                             /*tp_dict */
+	0,                             /*tp_descr_get */
+	0,                             /*tp_descr_set */
+	0,                             /*tp_dictoffset */
+	(initproc)Iterator_init,      /*tp_init */
+	0,                             /*tp_alloc */
+	Iterator_new,                 /*tp_new */
+};
 #define LevelDB_Check(op) PyObject_TypeCheck(op, &LevelDBType)
 #define WriteBatch_Check(op) PyObject_TypeCheck(op, &WriteBatchType)
 #define Snapshot_Check(op) PyObject_TypeCheck(op, &SnapshotType)
-
+#define Iterator_Check(op) PyObject_TypeCheck(op, &IteratorType)
 PyMODINIT_FUNC
 initleveldb(void)
 {
@@ -881,6 +960,9 @@ initleveldb(void)
 	if (PyType_Ready(&SnapshotType) < 0)
 		return;
 
+	if (PyType_Ready(&IteratorType) < 0)
+		return;
+
 	// add custom types to the different modules
 	Py_INCREF(&LevelDBType);
 	if (PyModule_AddObject(leveldb_module, (char*)"LevelDB", (PyObject*)&LevelDBType) != 0)
@@ -892,5 +974,9 @@ initleveldb(void)
 
 	Py_INCREF(&SnapshotType);
 	if (PyModule_AddObject(leveldb_module, (char*)"Snapshot", (PyObject*)&SnapshotType) != 0)
+		return;
+
+	Py_INCREF(&IteratorType);
+	if (PyModule_AddObject(leveldb_module, (char*)"Iterator", (PyObject*)&IteratorType) != 0)
 		return;
 }
