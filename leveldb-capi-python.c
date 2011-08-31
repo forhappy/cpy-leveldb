@@ -33,8 +33,6 @@ typedef struct {
 	leveldb_t *_db;
 	leveldb_options_t *_options;
 	leveldb_cache_t *_cache;
-	leveldb_readoptions_t *_roptions;
-	leveldb_writeoptions_t *_woptions;
 	leveldb_env_t *_env;
 
 	leveldb_snapshot_t *_snapshot;
@@ -54,8 +52,6 @@ static void LevelDB_dealloc(LevelDB* self)
 	_XDECREF(self->_db);
 	_XDECREF(self->_options);
 	_XDECREF(self->_cache);
-	_XDECREF(self->_roptions);
-	_XDECREF(self->_woptions);
 	_XDECREF(self->_env);
 	_XDECREF(self->_snapshot);
 	_XDECREF(self->_iterator);
@@ -64,8 +60,6 @@ static void LevelDB_dealloc(LevelDB* self)
 	self->_db = NULL;
 	self->_options = NULL;
 	self->_cache = NULL;
-	self->_roptions = NULL;
-	self->_woptions = NULL;
 	self->_env = NULL;
 	self->_snapshot = NULL;
 	self->_iterator = NULL;
@@ -94,8 +88,6 @@ static PyObject* LevelDB_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
-		self->_roptions = NULL;
-		self->_woptions = NULL;
 		self->_env = NULL;
 		self->_snapshot = NULL;
 		self->_iterator = NULL;
@@ -118,15 +110,12 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	// cleanup
 	if (self->_db || self->_cache || self->_options
-			|| self->_roptions || self->_woptions
 			|| self->_env || self->_snapshot 
 			|| self->_iterator) {
 		Py_BEGIN_ALLOW_THREADS
 		_XDECREF(self->_db);
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
-		_XDECREF(self->_roptions);
-		_XDECREF(self->_woptions);
 		_XDECREF(self->_env);
 		_XDECREF(self->_snapshot);
 		_XDECREF(self->_iterator);
@@ -134,8 +123,6 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
-		self->_roptions = NULL;
-		self->_roptions = NULL;
 		self->_env = NULL;
 		self->_snapshot = NULL;
 		self->_iterator = NULL;
@@ -176,26 +163,17 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	self->_cache = leveldb_cache_create_lru(block_cache_size); 
 	self->_env = leveldb_create_default_env();
 
-	self->_roptions = leveldb_readoptions_create();
-	self->_woptions = leveldb_writeoptions_create();
-
 	self->_snapshot = NULL;
 	self->_iterator = NULL;
 
 	if (self->_options == NULL || self->_cache == NULL
-			|| self->_roptions == NULL 
-			|| self->_woptions == NULL
 			|| self->_env == NULL) {
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
-		_XDECREF(self->_roptions);
-		_XDECREF(self->_woptions);
 		_XDECREF(self->_env);
 
 		self->_options = NULL;
 		self->_cache = NULL;
-		self->_roptions = NULL;
-		self->_woptions = NULL;
 		self->_env = NULL;
 		return -1;
 	}
@@ -220,15 +198,11 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		_XDECREF(self->_db);
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
-		_XDECREF(self->_roptions);
-		_XDECREF(self->_woptions);
 		_XDECREF(self->_env);
 
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
-		self->_roptions = NULL;
-		self->_roptions = NULL;
 		self->_env = NULL;
 		
 		fprintf(stderr, "error occurs in opening leveldb:\n\t%s\n", err);
@@ -263,6 +237,7 @@ static PyObject* LevelDB_Put(LevelDB* self, PyObject* args, PyObject* kwds)
 	const char* kwargs[] = {"key", "value", "sync", 0};
 	PyObject* sync = Py_False;
 	char *err = NULL;
+	leveldb_writeoptions_t *woptions = NULL;
 
 	LEVELDB_DEFINE_KVBUF(key);
 	LEVELDB_DEFINE_KVBUF(value);
@@ -272,10 +247,15 @@ static PyObject* LevelDB_Put(LevelDB* self, PyObject* args, PyObject* kwds)
 		return -1;
 	}
 
+	woptions = leveldb_writeoptions_create();
+	if (woptions == NULL) {
+		fprintf(stderr, "Failed to create writeoptions.\n");
+	}
+
 	Py_BEGIN_ALLOW_THREADS
 
-	leveldb_writeoptions_set_sync(self->_woptions, (sync == Py_True) ? 1 : 0);
-	leveldb_put(self->_db, self->_woptions, (const char *)s_key, (size_t)i_key, (const char *)s_value, (size_t)i_value, &err);
+	leveldb_writeoptions_set_sync(woptions, (sync == Py_True) ? 1 : 0);
+	leveldb_put(self->_db, woptions, (const char *)s_key, (size_t)i_key, (const char *)s_value, (size_t)i_value, &err);
 
 	Py_END_ALLOW_THREADS
 
@@ -283,6 +263,7 @@ static PyObject* LevelDB_Put(LevelDB* self, PyObject* args, PyObject* kwds)
 		fprintf(stderr, "error occurs when put:\n\t%s\n", err);
 	}
 
+	leveldb_writeoptions_destroy(woptions);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -292,12 +273,17 @@ static PyObject* LevelDB_Get(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	PyObject* verify_checksums = Py_False;
 	PyObject* fill_cache = Py_True;
+	leveldb_readoptions_t *roptions = NULL;
 
 	const char* kwargs[] = {"key", "verify_checksums", "fill_cache", 0};
 	char *value;
 	size_t value_len;
 	char *err = NULL;
 
+	roptions  = leveldb_readoptions_create();
+	if (roptions == NULL) {
+		fprintf(stderr, "Failed to create readoptions.\n");
+	}
 	LEVELDB_DEFINE_KVBUF(key);
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s#|O!O!", (char**)kwargs, &s_key, &i_key, &PyBool_Type, &verify_checksums, &PyBool_Type, &fill_cache))
@@ -305,15 +291,17 @@ static PyObject* LevelDB_Get(LevelDB* self, PyObject* args, PyObject* kwds)
 
 	Py_BEGIN_ALLOW_THREADS
 
-	leveldb_readoptions_set_verify_checksums(self->_roptions, (verify_checksums == Py_True) ? 1 : 0);
-	leveldb_readoptions_set_fill_cache(self->_roptions, (fill_cache == Py_True) ? 1 : 0);
-	value = leveldb_get(self->_db, self->_roptions, (const char *)s_key, (size_t)i_key, &value_len, &err);
+	leveldb_readoptions_set_verify_checksums(roptions, (verify_checksums == Py_True) ? 1 : 0);
+	leveldb_readoptions_set_fill_cache(roptions, (fill_cache == Py_True) ? 1 : 0);
+	value = leveldb_get(self->_db, roptions, (const char *)s_key, (size_t)i_key, &value_len, &err);
 
 	Py_END_ALLOW_THREADS
 
 	if (err != NULL) {
 		fprintf(stderr, "error occurs get:\n\t%s\n", err);
 	}
+
+	leveldb_readoptions_destroy(roptions);
 
 	return PyString_FromStringAndSize(value, value_len);
 }
@@ -322,6 +310,7 @@ static PyObject* LevelDB_Delete(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	PyObject* sync = Py_False;
 	const char* kwargs[] = {"key", "sync", 0};
+	leveldb_writeoptions_t * woptions = NULL;
 
 	LEVELDB_DEFINE_KVBUF(key);	
 
@@ -329,11 +318,15 @@ static PyObject* LevelDB_Delete(LevelDB* self, PyObject* args, PyObject* kwds)
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s#|O!", (char**)kwargs, &s_key, &i_key, &PyBool_Type, &sync))
 		return -1;
 	
-	leveldb_writeoptions_set_sync(self->_woptions, (sync == Py_True) ? 1 : 0);
+	woptions = leveldb_writeoptions_create();
+	if (woptions == NULL) {
+		fprintf(stderr, "Failed to create writeoptions.\n");
+	}
+	leveldb_writeoptions_set_sync(woptions, (sync == Py_True) ? 1 : 0);
 
 	Py_BEGIN_ALLOW_THREADS
 
-	leveldb_delete(self->_db, self->_woptions, (const char *)s_key, (size_t)i_key, &err);
+	leveldb_delete(self->_db, woptions, (const char *)s_key, (size_t)i_key, &err);
 
 	Py_END_ALLOW_THREADS
 
@@ -341,6 +334,7 @@ static PyObject* LevelDB_Delete(LevelDB* self, PyObject* args, PyObject* kwds)
 	if (err != NULL) {
 		fprintf(stderr, "error occurs when delete:\n\t%s\n", err);
 	}
+	leveldb_writeoptions_destroy(woptions);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -378,8 +372,6 @@ static PyObject * LevelDB_Close(LevelDB *self, PyObject *args)
 {
 	leveldb_close(self->_db);
 	leveldb_options_destroy(self->_options);
-	leveldb_readoptions_destroy(self->_roptions);
-	leveldb_writeoptions_destroy(self->_woptions);
 	leveldb_cache_destroy(self->_cache);
 	leveldb_env_destroy(self->_env);
 
@@ -424,6 +416,12 @@ static PyObject * WriteBatch_Clear(WriteBatch *self, PyObject *args)
 	return Py_None;
 }
 
+static PyObject * WriteBatch_Release(WriteBatch *self, PyObject *args)
+{
+	leveldb_writebatch_destroy(self->_writebatch);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 static PyObject * LevelDB_Property(LevelDB *self, PyObject *args)
 {
 
@@ -475,8 +473,6 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 		_XDECREF(self->_db);
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
-		_XDECREF(self->_roptions);
-		_XDECREF(self->_woptions);
 		_XDECREF(self->_env);
 		_XDECREF(self->_snapshot);
 		_XDECREF(self->_iterator);
@@ -484,8 +480,6 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
-		self->_roptions = NULL;
-		self->_roptions = NULL;
 		self->_env = NULL;
 		self->_snapshot = NULL;
 		self->_iterator = NULL;
@@ -512,14 +506,26 @@ static PyObject * LevelDB_Create_Snapshot(LevelDB *self, PyObject *args)
 
 static PyObject * LevelDB_Active_Snapshot(LevelDB *self, PyObject *args)
 {
-	leveldb_readoptions_set_snapshot(self->_roptions, self->_snapshot);
+
+	leveldb_readoptions_t *roptions = NULL;
+	roptions = leveldb_readoptions_create();
+	if (roptions == NULL) {
+		fprintf(stderr, "Failed to create readoptions.\n");
+	}
+	leveldb_readoptions_set_snapshot(roptions, self->_snapshot);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
 static PyObject * LevelDB_Reset_Snapshot(LevelDB *self, PyObject *args)
 {
-	leveldb_readoptions_set_snapshot(self->_roptions, NULL);
+
+	leveldb_readoptions_t *roptions = NULL;
+	roptions = leveldb_readoptions_create();
+	if (roptions == NULL) {
+		fprintf(stderr, "Failed to create readoptions.\n");
+	}
+	leveldb_readoptions_set_snapshot(roptions, NULL);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -533,7 +539,10 @@ static PyObject * LevelDB_Release_Snapshot(LevelDB *self, PyObject *args)
 
 static PyObject * LevelDB_CreateIter(LevelDB *self, PyObject *args)
 {
-	self->_iterator = leveldb_create_iterator(self->_db, self->_roptions);
+	leveldb_readoptions_t *roptions = NULL;
+	roptions = leveldb_readoptions_create();
+
+	self->_iterator = leveldb_create_iterator(self->_db, roptions);
 	if(self->_iterator == NULL) {
 		fprintf(stderr, "Failed to create iterator\n");
 	}
@@ -665,6 +674,7 @@ static PyMethodDef WriteBatch_methods[] = {
 	{(char*)"Put",    (PyCFunction)WriteBatch_Put,    METH_VARARGS, (char*)"add a put operation to batch" },
 	{(char*)"Delete", (PyCFunction)WriteBatch_Delete, METH_VARARGS, (char*)"add a delete operation to batch" },
 	{(char*)"Clear",    (PyCFunction)WriteBatch_Clear,    METH_VARARGS, (char*)"clear batch" },
+	{(char*)"Release",    (PyCFunction)WriteBatch_Release,    METH_VARARGS, (char*)"release a batch" },
 	{NULL}
 };
 PyTypeObject LevelDBType = {
