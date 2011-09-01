@@ -527,6 +527,7 @@ static PyObject * WriteBatch_Release(WriteBatch *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
 static PyObject * LevelDB_Property(LevelDB *self, PyObject *args)
 {
 
