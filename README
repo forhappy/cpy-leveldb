@@ -73,3 +73,20 @@ Iterator_init executed.
 '11'
 >>> iter.Value()
 'hello world 11'
+>>> db.Put("1", "111")
+>>> db.Put("2", "222")
+>>> db.Put("3", "333")
+>>> db.Get("1")
+'111'
+>>> snap = leveldb.Snapshot(db)
+Snapshot_init executed.
+>>> db.Delete("1")
+>>> db.Get("1")
+''
+>>> snap.Set()
+>>> db.Get("1")
+'111'
+>>> snap.Reset()
+>>> db.Get("1")
+''
+>>> snap.Release()

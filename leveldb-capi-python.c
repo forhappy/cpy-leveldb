@@ -32,6 +32,8 @@ PyTypeObject LevelDBType;
 PyTypeObject SnapshotType;
 PyTypeObject IteratorType;
 
+static PyObject *LevelDBError = NULL;
+
 typedef struct {
 	PyObject_HEAD
 	leveldb_t *_db;
@@ -370,7 +372,6 @@ static int Iterator_init(Iterator *self, PyObject* args, PyObject* kwds)
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (const char*)"O!", kwargs, &LevelDBType, &leveldb))
 		return -1;
 	if (leveldb != NULL) {
-		printf("Iterator_init executed.\n");
 		iterator = leveldb_create_iterator(leveldb->_db, roptions);
 		self->_iterator = iterator;
 	}
@@ -657,7 +658,6 @@ static PyObject * Snapshot_Set(Snapshot *self, PyObject *args)
 
 	if (self->_snapshot != NULL ) {
 		leveldb_readoptions_set_snapshot(self->_leveldb->_roptions, self->_snapshot);
-		printf("Set snapshot successfully.\n");
 	} else {
 		fprintf(stderr, "Unable to set snapshot.\n");
 	}
@@ -1017,6 +1017,10 @@ initleveldb(void)
 	if (PyType_Ready(&IteratorType) < 0)
 		return;
 
+	LevelDBError = PyErr_NewException((char *)"leveldb.LevelDBError", NULL, NULL);
+	if (LevelDBError == NULL) {
+		fprintf(stderr, "Failed to create LevelDBError.\n");
+	}
 	// add custom types to the different modules
 	Py_INCREF(&LevelDBType);
 	if (PyModule_AddObject(leveldb_module, (char*)"LevelDB", (PyObject*)&LevelDBType) != 0)
@@ -1032,5 +1036,8 @@ initleveldb(void)
 
 	Py_INCREF(&IteratorType);
 	if (PyModule_AddObject(leveldb_module, (char*)"Iterator", (PyObject*)&IteratorType) != 0)
+		return;
+	Py_INCREF(LevelDBError);
+	if (PyModule_AddObject(leveldb_module, (char *)"LevelDBError", LevelDBError) != 0)
 		return;
 }
