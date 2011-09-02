@@ -6,8 +6,10 @@
 import sys
 from distutils.core import setup, Extension
 
-extra_compile_args = ['-I./leveldb/include/', '-fPIC', '-Wall', '-g2', '-D_GNU_SOURCE']
-extra_link_args = ['-L./leveldb', '-static', '-lleveldb']
+extra_compile_args = ['-Wl,Bstatic', '-pedantic', '-I./leveldb/include/',
+'-shared', '-std=c99', '-fPIC', '-Wall', '-g', '-D_GNU_SOURCE']
+extra_link_args = ['-L./leveldb', '-Bstatic', '-lleveldb', '-lpthread',
+'-lsnappy']
 
 setup(
 	name = 'leveldb',
@@ -44,8 +46,6 @@ setup(
 				# python stuff
 				'leveldb-capi-python.c',
 			],
-			libraries = ['stdc++', 'snappy', 'pthread'],
-
 			extra_compile_args = extra_compile_args,
 			extra_link_args = extra_link_args
 		)
