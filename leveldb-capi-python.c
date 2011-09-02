@@ -38,6 +38,15 @@ typedef struct {
 	leveldb_options_t *_options;
 	leveldb_cache_t *_cache;
 	leveldb_env_t *_env;
+
+	/* In order to support snapshot, we have to put leveldb_readoptions_t *_roptions 
+	 * in LevelDB struct to record the readoptions operation 
+	 * in LevelDB_Get(), since we must use the same readoptions
+	 * struct in Snapshot_Set as we use in LevelDB_Get. 
+	 *
+	 * */
+	leveldb_readoptions_t *_roptions;
+
 } LevelDB;
 
 typedef struct {
@@ -47,6 +56,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
+	LevelDB *_leveldb;
 	const leveldb_snapshot_t *_snapshot;
 } Snapshot;
 
@@ -62,12 +72,17 @@ static void LevelDB_dealloc(LevelDB* self)
 	_XDECREF(self->_options);
 	_XDECREF(self->_cache);
 	_XDECREF(self->_env);
+
+	_XDECREF(self->_roptions);
+
 	Py_END_ALLOW_THREADS
 
 	self->_db = NULL;
 	self->_options = NULL;
 	self->_cache = NULL;
 	self->_env = NULL;
+
+	self->_roptions = NULL;
 
 	self->ob_type->tp_free((PyObject *)self);
 }
@@ -95,6 +110,7 @@ static void Snapshot_dealloc(Snapshot *self)
 
 	Py_END_ALLOW_THREADS
 
+	self->_leveldb = NULL;
 	self->_snapshot = NULL;
 
 	self->ob_type->tp_free(self);
@@ -123,6 +139,8 @@ static PyObject* LevelDB_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
+
+		self->_roptions = NULL;
 	}
 
 	return (PyObject*)self;
@@ -143,7 +161,8 @@ static PyObject* Snapshot_new(PyTypeObject* type, PyObject* args, PyObject* kwds
 	Snapshot * self = (Snapshot *)type->tp_alloc(type, 0);
 
 	if (self != NULL) {
-		self->_snapshot= NULL;
+		self->_leveldb = NULL;
+		self->_snapshot = NULL;
 	}
 	return (PyObject*)self;
 }
@@ -163,17 +182,22 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	// cleanup
 	if (self->_db || self->_cache || self->_options
-			|| self->_env ) {
+			|| self->_env || self->_roptions) {
 		Py_BEGIN_ALLOW_THREADS
 		_XDECREF(self->_db);
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
+
+		_XDECREF(self->_roptions);
+
 		Py_END_ALLOW_THREADS
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
+
+		self->_roptions = NULL;
 	}
 
 	/* arguments */
@@ -211,15 +235,28 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	self->_cache = leveldb_cache_create_lru(block_cache_size); 
 	self->_env = leveldb_create_default_env();
 
+	self->_roptions = leveldb_readoptions_create();
+
+	/* default : 'verify_checksums' option is off 
+	 * and 'fill_cache' is on
+	 *
+	 * */
+	leveldb_readoptions_set_verify_checksums(self->_roptions, 0);
+	leveldb_readoptions_set_fill_cache(self->_roptions, 1);
+
 	if (self->_options == NULL || self->_cache == NULL
-			|| self->_env == NULL) {
+			|| self->_env == NULL || self->_roptions == NULL) {
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
 
+		_XDECREF(self->_roptions);
+
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
+
+		self->_roptions = NULL;
 		return -1;
 	}
 	leveldb_options_set_create_if_missing(self->_options, (create_if_missing == Py_True) ? 1 : 0);
@@ -245,11 +282,14 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
 
+		_XDECREF(self->_roptions);
+
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
 		
+		self->_roptions = NULL;
 		fprintf(stderr, "error occurs in opening leveldb:\n\t%s\n", err);
 	}
 	Py_END_ALLOW_THREADS
@@ -279,25 +319,28 @@ static int WriteBatch_init(WriteBatch* self, PyObject* args, PyObject* kwds)
 
 static int Snapshot_init(Snapshot* self, PyObject* args, PyObject* kwds)
 {
-	static char* kwargs[] = {"leveldb", 0};
+	static char* kwargs[] = {"db", 0};
 	LevelDB *leveldb = NULL;
-	const leveldb_snapshot_t *snapshot = NULL;
 
 	if (self->_snapshot) {
 		Py_BEGIN_ALLOW_THREADS
 		_XDECREF((void *)self->_snapshot);
 		Py_END_ALLOW_THREADS
 		
-		self->_snapshot= NULL;
+		self->_snapshot = NULL;
+		self->_leveldb = NULL;
 	}
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (const char*)"O!", kwargs, &LevelDBType, &leveldb))
 		return -1;
-	if (leveldb != NULL) {
+
+	if (leveldb != NULL && leveldb->_db != NULL) {
+		self->_leveldb = leveldb;
+		self->_snapshot = leveldb_create_snapshot(leveldb->_db);
+		assert(self->_snapshot != NULL);
 		printf("Snapshot_init executed.\n");
-		snapshot = leveldb_create_snapshot(leveldb->_db);
-		self->_snapshot = snapshot;
 	}
-	if (self->_snapshot== NULL) {
+
+	if (self->_snapshot== NULL ) {
 		fprintf(stderr, "Failed to create snapshot.\n");
 	}
 
@@ -378,17 +421,18 @@ static PyObject* LevelDB_Get(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	PyObject* verify_checksums = Py_False;
 	PyObject* fill_cache = Py_True;
-	leveldb_readoptions_t *roptions = NULL;
+//	leveldb_readoptions_t *roptions = NULL;
 
 	const char* kwargs[] = {"key", "verify_checksums", "fill_cache", 0};
 	char *value;
 	size_t value_len;
 	char *err = NULL;
 
-	roptions  = leveldb_readoptions_create();
-	if (roptions == NULL) {
-		fprintf(stderr, "Failed to create readoptions.\n");
-	}
+//	roptions  = leveldb_readoptions_create();
+//	if (roptions == NULL) {
+//		fprintf(stderr, "Failed to create readoptions.\n");
+//	}
+//
 	LEVELDB_DEFINE_KVBUF(key);
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s#|O!O!", (char**)kwargs, &s_key, &i_key, &PyBool_Type, &verify_checksums, &PyBool_Type, &fill_cache))
@@ -396,9 +440,19 @@ static PyObject* LevelDB_Get(LevelDB* self, PyObject* args, PyObject* kwds)
 
 	Py_BEGIN_ALLOW_THREADS
 
-	leveldb_readoptions_set_verify_checksums(roptions, (verify_checksums == Py_True) ? 1 : 0);
-	leveldb_readoptions_set_fill_cache(roptions, (fill_cache == Py_True) ? 1 : 0);
-	value = leveldb_get(self->_db, roptions, (const char *)s_key, (size_t)i_key, &value_len, &err);
+
+	/* default : 'verify_checksums' option is off 
+	 * and 'fill_cache' is on
+	 *
+	 * */
+
+	leveldb_readoptions_set_verify_checksums(self->_roptions, (verify_checksums == Py_True) ? 1 : 0);
+	leveldb_readoptions_set_fill_cache(self->_roptions, (fill_cache == Py_True) ? 1 : 0);
+	value = leveldb_get(self->_db, self->_roptions, (const char *)s_key, (size_t)i_key, &value_len, &err);
+
+	/* reset readoptions _roptions to default */
+	leveldb_readoptions_set_verify_checksums(self->_roptions, 0);
+	leveldb_readoptions_set_fill_cache(self->_roptions, 1);
 
 	Py_END_ALLOW_THREADS
 
@@ -406,7 +460,7 @@ static PyObject* LevelDB_Get(LevelDB* self, PyObject* args, PyObject* kwds)
 		fprintf(stderr, "error occurs get:\n\t%s\n", err);
 	}
 
-	leveldb_readoptions_destroy(roptions);
+//	leveldb_readoptions_destroy(roptions);
 
 	return PyString_FromStringAndSize(value, value_len);
 }
@@ -473,6 +527,7 @@ static PyObject * LevelDB_Write(LevelDB *self, PyObject *args, PyObject *kwds)
 	return Py_None;
 }
 
+
 static PyObject * LevelDB_Close(LevelDB *self, PyObject *args)
 {
 	leveldb_close(self->_db);
@@ -480,6 +535,7 @@ static PyObject * LevelDB_Close(LevelDB *self, PyObject *args)
 	leveldb_cache_destroy(self->_cache);
 	leveldb_env_destroy(self->_env);
 
+	leveldb_readoptions_destroy(self->_roptions);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -596,14 +652,11 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 
 static PyObject * Snapshot_Set(Snapshot *self, PyObject *args)
 {
-	leveldb_readoptions_t *roptions = NULL;
-	roptions = leveldb_readoptions_create();
-	if (roptions == NULL) {
-		fprintf(stderr, "Failed to create readoptions.\n");
-	}
 
-	if (self->_snapshot != NULL) {
-		leveldb_readoptions_set_snapshot(roptions, self->_snapshot);
+	assert(self->_snapshot != NULL);
+
+	if (self->_snapshot != NULL ) {
+		leveldb_readoptions_set_snapshot(self->_leveldb->_roptions, self->_snapshot);
 		printf("Set snapshot successfully.\n");
 	} else {
 		fprintf(stderr, "Unable to set snapshot.\n");
@@ -616,13 +669,9 @@ static PyObject * Snapshot_Set(Snapshot *self, PyObject *args)
 static PyObject * Snapshot_Reset(Snapshot *self, PyObject *args)
 {
 
-	leveldb_readoptions_t *roptions = NULL;
-	roptions = leveldb_readoptions_create();
-	if (roptions == NULL) {
-		fprintf(stderr, "Failed to create readoptions.\n");
-	}
+	assert(self->_snapshot != NULL);
 
-	leveldb_readoptions_set_snapshot(roptions, NULL);
+	leveldb_readoptions_set_snapshot(self->_leveldb->_roptions, NULL);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -630,13 +679,7 @@ static PyObject * Snapshot_Reset(Snapshot *self, PyObject *args)
 
 static PyObject * Snapshot_Release(Snapshot *self, PyObject *args)
 {
-	LevelDB *leveldb = NULL;
-	if (!PyArg_ParseTuple(args, (const char *)"O!", &LevelDBType, &leveldb)) 
-		return -1;
-	if (leveldb != NULL) {
-		printf("Snapshot_Release executed.\n");
-		leveldb_release_snapshot(leveldb->_db, self->_snapshot);
-	}
+	leveldb_release_snapshot(self->_leveldb->_db, self->_snapshot);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
