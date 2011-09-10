@@ -6,10 +6,10 @@
 import sys
 from distutils.core import setup, Extension
 
-extra_compile_args = ['-Wl,Bstatic', '-pedantic', '-I./leveldb/include/',
-'-shared', '-std=c99', '-fPIC', '-Wall', '-g', '-D_GNU_SOURCE']
-extra_link_args = ['-L./leveldb', '-Bstatic', '-lleveldb', '-lpthread',
-'-lsnappy']
+extra_compile_args = ['-Wall', '-pedantic', '-I./leveldb/include/',
+'-shared', '-std=c99', '-fPIC', '-g', '-D_GNU_SOURCE']
+extra_link_args = ['-L./leveldb', '-Wl,-Bstatic', '-lleveldb', '-lsnappy',
+'-Wl,-Bdynamic', '-lpthread']
 
 setup(
 	name = 'leveldb',
