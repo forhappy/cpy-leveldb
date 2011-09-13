@@ -393,7 +393,7 @@ static PyObject* LevelDB_Put(LevelDB* self, PyObject* args, PyObject* kwds)
 
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s#s#|O!", (char**)kwargs, &s_key, &i_key, &s_value, &i_value, &PyBool_Type, &sync)) {
-		return -1;
+		return NULL;
 	}
 
 	woptions = leveldb_writeoptions_create();
@@ -437,7 +437,7 @@ static PyObject* LevelDB_Get(LevelDB* self, PyObject* args, PyObject* kwds)
 	LEVELDB_DEFINE_KVBUF(key);
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s#|O!O!", (char**)kwargs, &s_key, &i_key, &PyBool_Type, &verify_checksums, &PyBool_Type, &fill_cache))
-		return -1;
+		return NULL;
 
 	Py_BEGIN_ALLOW_THREADS
 
@@ -476,7 +476,7 @@ static PyObject* LevelDB_Delete(LevelDB* self, PyObject* args, PyObject* kwds)
 
 	char *err = NULL;
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s#|O!", (char**)kwargs, &s_key, &i_key, &PyBool_Type, &sync))
-		return -1;
+		return NULL;
 	
 	woptions = leveldb_writeoptions_create();
 	if (woptions == NULL) {
@@ -509,7 +509,7 @@ static PyObject * LevelDB_Write(LevelDB *self, PyObject *args, PyObject *kwds)
 	leveldb_writeoptions_t *woptions = NULL;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char *)"O!|O!", (char **)kwargs, &WriteBatchType, &batch, &PyBool_Type, &sync))
-		return -1;
+		return NULL;
 
 	woptions = leveldb_writeoptions_create();
 	if (woptions == NULL) {
@@ -548,7 +548,7 @@ static PyObject * WriteBatch_Put(WriteBatch *self, PyObject *args)
 	LEVELDB_DEFINE_KVBUF(value);
 
 	if (!PyArg_ParseTuple(args, (char*)"t#t#", &s_key, &i_key, &s_value, &i_value))
-		return -1;
+		return NULL;
 
 	leveldb_writebatch_put(self->_writebatch, (const char *)s_key, (size_t)i_key, (const char *)s_value, (size_t)i_value);
 
@@ -562,7 +562,7 @@ static PyObject * WriteBatch_Delete(WriteBatch *self, PyObject *args)
 	LEVELDB_DEFINE_KVBUF(key);
 
 	if (!PyArg_ParseTuple(args, (char*)"t#", &s_key, &i_key))
-		return -1;
+		return NULL;
 
 	leveldb_writebatch_delete(self->_writebatch, (const char *)s_key, (size_t)i_key);
 
@@ -593,7 +593,7 @@ static PyObject * LevelDB_Property(LevelDB *self, PyObject *args)
 	PyObject *result;
 
 	if (!PyArg_ParseTuple(args, (char*)"s", &propname))
-		return -1;
+		return NULL;
 	propvalue = leveldb_property_value(self->_db, propname);
 	if (propvalue != NULL) {
 		result = Py_BuildValue("s#", propvalue, strlen(propvalue));
@@ -618,7 +618,7 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 		&db_dir,
 		&PyBool_Type, &create_if_missing,
 		&PyBool_Type, &error_if_exists))
-		return -1;
+		return NULL;
 
 	leveldb_options_set_create_if_missing(self->_options, (create_if_missing == Py_True) ? 1 : 0);
 	leveldb_options_set_error_if_exists(self->_options, (error_if_exists == Py_True) ? 1 : 0);
