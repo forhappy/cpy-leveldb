@@ -27,16 +27,31 @@
 
 #define LEVELDB_DEFINE_KVBUF(buf) const char * s_##buf = NULL; size_t i_##buf
 
-#define CPY_LEVELDB_MODULE_VERSION "0.2.0"
-#define CPY_LEVELDB_VERSION_DATE   "2011-09-13"
+#define CPY_LEVELDB_MODULE_VERSION "0.2.1"
+#define CPY_LEVELDB_VERSION_DATE   "2011-09-14"
 
-PyTypeObject WriteBatchType;
+#define LevelDB_Check(op) PyObject_TypeCheck(op, &LevelDBType)
+#define WriteBatch_Check(op) PyObject_TypeCheck(op, &WriteBatchType)
+#define Snapshot_Check(op) PyObject_TypeCheck(op, &SnapshotType)
+#define Iterator_Check(op) PyObject_TypeCheck(op, &IteratorType)
+#define Comparator_Check(op) PyObject_TypeCheck(op, &ComparatorType)
+
+/* Types. */
 PyTypeObject LevelDBType;
+PyTypeObject WriteBatchType;
 PyTypeObject SnapshotType;
 PyTypeObject IteratorType;
+PyTypeObject ComparatorType;
 
+/* Error object. */
 static PyObject *LevelDBError = NULL;
 
+/* callback object used for comparator. */
+static PyObject *desctructor_callback = NULL;
+static PyObject *compare_callbak = NULL;
+static PyObject *name_callback = NULL;
+
+/* LevelDB, WriteBatch, Snapshot, Iterator, Comparator structs definition. */
 typedef struct {
 	PyObject_HEAD
 	leveldb_t *_db;
@@ -69,6 +84,71 @@ typedef struct {
 	PyObject_HEAD
 	leveldb_iterator_t *_iterator;
 } Iterator;
+
+typedef struct {
+	PyObject_HEAD
+	leveldb_comparator_t *_comparator;
+} Comparator;
+
+
+/* helper functions used for comparator. */
+static void _destructor(void *arg __attribute__((unused)))
+{
+	PyObject *ret_pyfunc = NULL;
+
+	ret_pyfunc = PyEval_CallObject(desctructor_callback, NULL);
+
+	if (ret_pyfunc == NULL) {
+		PyErr_Format(LevelDBError, "error occurs in comparator destructor operation.\n");
+		return; 
+	}
+	Py_DECREF(ret_pyfunc);
+	Py_INCREF(Py_None);
+	return;
+
+}
+
+static int _compare(void *arg __attribute__((unused)), 
+		const char *a, size_t alen,
+		const char *b, size_t blen)
+{
+	int ret = 0;
+	PyObject *arglist;
+	PyObject *ret_pyfunc = NULL;
+	arglist = Py_BuildValue("(s#s#)", a, alen, b, blen);
+
+	ret_pyfunc = PyEval_CallObject(compare_callbak, arglist);
+	Py_DECREF(arglist);
+
+	if (ret_pyfunc == NULL) {
+		PyErr_Format(LevelDBError, "error occurs in compare operation.\n");
+		return 0;
+	}
+
+	ret = (int)PyInt_AsLong(ret_pyfunc);
+	Py_DECREF(ret_pyfunc);
+
+	return ret;
+}
+
+static const char *_name(void *arg __attribute__((unused)))
+{
+
+	char *ret = NULL;
+	PyObject *ret_pyfunc = NULL;
+
+	ret_pyfunc = PyEval_CallObject(name_callback, NULL);
+
+	if (ret_pyfunc == NULL) {
+		PyErr_Format(LevelDBError, "error occurs in name operation.\n");
+		return NULL;
+	}
+
+	ret = (char *)PyString_AsString(ret_pyfunc);
+	Py_DECREF(ret_pyfunc);
+
+	return ret;
+}
 
 static void LevelDB_dealloc(LevelDB* self)
 {
@@ -136,6 +216,21 @@ static void Iterator_dealloc(Iterator *self)
 }
 
 
+static void Comparator_dealloc(Comparator *self)
+{
+	Py_BEGIN_ALLOW_THREADS
+
+	leveldb_comparator_destroy(self->_comparator);
+	_XDECREF(self->_comparator);
+
+	Py_END_ALLOW_THREADS
+
+	self->_comparator= NULL;
+
+	self->ob_type->tp_free(self);
+}
+
+
 static PyObject* LevelDB_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
 	LevelDB* self = (LevelDB *)type->tp_alloc(type, 0);
@@ -184,6 +279,17 @@ static PyObject* Iterator_new(PyTypeObject* type, PyObject* args, PyObject* kwds
 	return (PyObject*)self;
 }
 
+static PyObject* Comparator_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+{
+	Comparator *self = (Comparator *)type->tp_alloc(type, 0);
+
+	if (self != NULL) {
+		self->_comparator= NULL;
+	}
+
+	return (PyObject*)self;
+}
+
 static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	// cleanup
@@ -217,9 +323,11 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	int max_open_files = 1000;
 	int block_restart_interval = 16;
 	PyObject *compression = Py_False;
-	const char* kwargs[] = {"filename", "create_if_missing", "error_if_exists", "paranoid_checks", "write_buffer_size", "block_size", "max_open_files", "block_restart_interval", "block_cache_size", "compression", 0};
+	Comparator *comparator = NULL;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s|O!O!O!iiiiiO!", (char**)kwargs,
+	const char* kwargs[] = {"filename", "create_if_missing", "error_if_exists", "paranoid_checks", "write_buffer_size", "block_size", "max_open_files", "block_restart_interval", "block_cache_size", "compression", "comparator", 0};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s|O!O!O!iiiiiO!O!", (char**)kwargs,
 		&db_dir,
 		&PyBool_Type, &create_if_missing,
 		&PyBool_Type, &error_if_exists,
@@ -229,7 +337,8 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		&max_open_files,
 		&block_restart_interval,
 		&block_cache_size,
-		&PyBool_Type, &compression))
+		&PyBool_Type, &compression,
+		&ComparatorType, &comparator))
 		return -1;
 
 	if (write_buffer_size <= 0 || block_size <= 0 || max_open_files <= 0 || block_restart_interval <= 0 || block_cache_size <= 0) {
@@ -238,6 +347,8 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	}
 
 	/* initializing LevelDBType fields */
+
+
 	self->_options = leveldb_options_create(); 
 	self->_cache = leveldb_cache_create_lru(block_cache_size); 
 	self->_env = leveldb_create_default_env();
@@ -278,6 +389,14 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	leveldb_options_set_compression(self->_options, (compression == Py_True) ? 1 : 0);
 	leveldb_options_set_env(self->_options, self->_env);
 	leveldb_options_set_info_log(self->_options, NULL);
+
+	if (comparator != NULL) {
+		if (!Comparator_Check(comparator)) {
+			PyErr_Format(PyExc_TypeError, "argument comparator must be ComparatorType.\n");
+			return -1;
+		}
+	}
+	leveldb_options_set_comparator(self->_options, comparator->_comparator);
 	
 	char *err = NULL;
 
@@ -387,6 +506,59 @@ static int Iterator_init(Iterator *self, PyObject* args, PyObject* kwds)
 
 	return 0;
 }
+
+
+static int Comparator_init(Comparator *self, PyObject* args, PyObject* kwds)
+{
+	static char* kwargs[] = {"destructor", "compare", "name",0};
+
+	PyObject *t_desctructor_callback = NULL;
+	PyObject *t_compare_callbak = NULL;
+	PyObject *t_name_callback = NULL;
+
+	if (self->_comparator) {
+		Py_BEGIN_ALLOW_THREADS
+		leveldb_comparator_destroy(self->_comparator);
+		_XDECREF(self->_comparator);
+		Py_END_ALLOW_THREADS
+		
+		self->_comparator = NULL;
+	}
+
+	fprintf(stderr, "beginning parsing arguments now...\n ");
+	if (PyArg_ParseTupleAndKeywords(args, kwds, (const char*)"OOO", kwargs, &t_desctructor_callback, &t_compare_callbak, &t_name_callback)) {
+		if (!PyCallable_Check(desctructor_callback)
+				|| !PyCallable_Check(compare_callbak)
+				|| !PyCallable_Check(name_callback)) {
+            PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+            return -1;
+        }
+
+		fprintf(stderr,"arguments parse is ok.\n");
+
+		Py_XINCREF(t_desctructor_callback);
+        Py_DECREF(desctructor_callback);
+        desctructor_callback = t_desctructor_callback;		
+
+		Py_XINCREF(t_compare_callbak);
+        Py_DECREF(compare_callbak);
+        compare_callbak = t_compare_callbak;		
+
+		Py_XINCREF(t_name_callback);
+        Py_DECREF(name_callback);
+        name_callback = t_name_callback;		
+
+		self->_comparator = leveldb_comparator_create(NULL, _destructor, _compare, _name);
+		if (self->_comparator == NULL) {
+			PyErr_Format(LevelDBError, "Failed to create comparator.\n");
+		}
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
 static PyObject* LevelDB_Put(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	const char* kwargs[] = {"key", "value", "sync", 0};
@@ -844,6 +1016,13 @@ static PyMethodDef Iterator_methods[] = {
 	{NULL}
 };
 
+static PyMethodDef Comparator_methods[] = {
+//	{(char*)"Set",    (PyCFunction)Snapshot_Set,    METH_VARARGS, (char*)"set snapshot" },
+//	{(char*)"Reset", (PyCFunction)Snapshot_Reset, METH_VARARGS, (char*)"reset snapshot to the current state" },
+//	{(char*)"Release",    (PyCFunction)Snapshot_Release,    METH_VARARGS, (char*)"release snapshot" },
+	{NULL}
+};
+
 PyTypeObject LevelDBType = {
 	PyObject_HEAD_INIT(NULL)
 	0,                             /*ob_size*/
@@ -1012,10 +1191,50 @@ PyTypeObject IteratorType = {
 	0,                             /*tp_alloc */
 	Iterator_new,                 /*tp_new */
 };
-#define LevelDB_Check(op) PyObject_TypeCheck(op, &LevelDBType)
-#define WriteBatch_Check(op) PyObject_TypeCheck(op, &WriteBatchType)
-#define Snapshot_Check(op) PyObject_TypeCheck(op, &SnapshotType)
-#define Iterator_Check(op) PyObject_TypeCheck(op, &IteratorType)
+
+PyTypeObject ComparatorType = {
+	PyObject_HEAD_INIT(NULL)
+	0,                             /*ob_size*/
+	(char*)"leveldb.Comparator",      /*tp_name*/
+	sizeof(Comparator),             /*tp_basicsize*/
+	0,                             /*tp_itemsize*/
+	(destructor)Comparator_dealloc, /*tp_dealloc*/
+	0,                             /*tp_print*/
+	0,                             /*tp_getattr*/
+	0,                             /*tp_setattr*/
+	0,                             /*tp_compare*/
+	0,                             /*tp_repr*/
+	0,                             /*tp_as_number*/
+	0,                             /*tp_as_sequence*/
+	0,                             /*tp_as_mapping*/
+	0,                             /*tp_hash */
+	0,                             /*tp_call*/
+	0,                             /*tp_str*/
+	0,                             /*tp_getattro*/
+	0,                             /*tp_setattro*/
+	0,                             /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,            /*tp_flags*/
+	(char*)"LevelDB comparator",   /*tp_doc */
+	0,                             /*tp_traverse */
+	0,                             /*tp_clear */
+	0,                             /*tp_richcompare */
+	0,                             /*tp_weaklistoffset */
+	0,                             /*tp_iter */
+	0,                             /*tp_iternext */
+	Comparator_methods,             /*tp_methods */
+	0,                             /*tp_members */
+	0,                             /*tp_getset */
+	0,                             /*tp_base */
+	0,                             /*tp_dict */
+	0,                             /*tp_descr_get */
+	0,                             /*tp_descr_set */
+	0,                             /*tp_dictoffset */
+	(initproc)Comparator_init,      /*tp_init */
+	0,                             /*tp_alloc */
+	Comparator_new,                 /*tp_new */
+};
+
+
 PyMODINIT_FUNC
 initleveldb(void)
 {
@@ -1071,6 +1290,11 @@ initleveldb(void)
 	Py_INCREF(&IteratorType);
 	if (PyModule_AddObject(leveldb_module, (char*)"Iterator", (PyObject*)&IteratorType) != 0)
 		return;
+
+	Py_INCREF(&ComparatorType);
+	if (PyModule_AddObject(leveldb_module, (char*)"Comparator", (PyObject*)&ComparatorType) != 0)
+		return;
+
 	Py_INCREF(LevelDBError);
 	if (PyModule_AddObject(leveldb_module, (char *)"LevelDBError", LevelDBError) != 0)
 		return;
