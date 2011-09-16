@@ -90,10 +90,13 @@ typedef struct {
 	leveldb_comparator_t *_comparator;
 } Comparator;
 
-
 /* helper functions used for comparator. */
+
+#if 0
+__attribute__((unused))
 static void _destructor(void *arg __attribute__((unused)))
 {
+	fprintf(stderr, "hello, in _destructor.\n");
 	PyObject *ret_pyfunc = NULL;
 
 	ret_pyfunc = PyEval_CallObject(desctructor_callback, NULL);
@@ -102,16 +105,27 @@ static void _destructor(void *arg __attribute__((unused)))
 		PyErr_Format(LevelDBError, "error occurs in comparator destructor operation.\n");
 		return; 
 	}
-	Py_DECREF(ret_pyfunc);
-	Py_INCREF(Py_None);
+	Py_XDECREF(ret_pyfunc);
 	return;
 
 }
+#else 
+__attribute__((unused))
+static void _destructor(void *arg __attribute__((unused)))
+{
+	fprintf(stderr, "hello, in _destructor.\n");
+	return;
 
+}
+#endif
+
+#if 0
+__attribute__((unused))
 static int _compare(void *arg __attribute__((unused)), 
 		const char *a, size_t alen,
 		const char *b, size_t blen)
 {
+	fprintf(stderr, "hello, in _compare.\n");
 	int ret = 0;
 	PyObject *arglist;
 	PyObject *ret_pyfunc = NULL;
@@ -126,14 +140,78 @@ static int _compare(void *arg __attribute__((unused)),
 	}
 
 	ret = (int)PyInt_AsLong(ret_pyfunc);
-	Py_DECREF(ret_pyfunc);
+	Py_XDECREF(ret_pyfunc);
+
+	return ret;
+}
+#else 
+
+__attribute__((unused))
+static int _compare(void *arg __attribute__((unused)), 
+		const char *a, size_t alen,
+		const char *b, size_t blen)
+{
+	fprintf(stderr, "hello, in _compare.\n");
+	int ret = 0;
+	PyObject *ret_pyfunc = NULL;
+
+	char *abuf = (char *)malloc(sizeof(char) * (alen + 1));
+	char *bbuf = (char *)malloc(sizeof(char) * (blen + 1));
+
+	memcpy(abuf, a, alen);
+	memcpy(bbuf, b, blen);
+	abuf[alen] = '\0';
+	bbuf[blen] = '\0';
+
+	if (abuf != NULL && bbuf != NULL)
+	{
+		fprintf(stderr, "abuf: %s, bbuf: %s\n", abuf, bbuf);
+	}
+
+	//arglist = PyTuple_New(2);
+	//PyTuple_SetItem(arglist, 0, Py_BuildValue("s", abuf));
+	//PyTuple_SetItem(arglist, 1, Py_BuildValue("s", bbuf));
+	//PyObject_Print(arglist, stderr, Py_PRINT_RAW);
+
+	if (compare_callbak != NULL) {
+		if(PyCallable_Check(compare_callbak)) {
+
+			fprintf(stderr, "yes, it is callable, i'm now in python callback in _compare.\n");
+			ret_pyfunc = PyObject_CallFunction(compare_callbak, "ss", abuf, bbuf);
+			fprintf(stderr, "ok, end of callback now.\n");
+		}
+	}else {
+		fprintf(stderr, "compare_callbak is NULL.\n");
+	}
+
+	if (ret_pyfunc == NULL) {
+		PyErr_Format(LevelDBError, "error occurs in compare operation.\n");
+		return 0;
+	}
+
+	ret = (int)PyInt_AsLong(ret_pyfunc);
+	Py_XDECREF(ret_pyfunc);
 
 	return ret;
 }
 
+__attribute__((unused))
+static int compare(void *arg __attribute__((unused)), 
+		const char *a, size_t alen,
+		const char *b, size_t blen)
+{
+	fprintf(stderr, "hello, in compare.\n");
+	int ret = 0;
+	ret = _compare(arg, a, alen, b, blen);
+	return ret;
+}
+#endif
+#if 0
+__attribute__((unused))
 static const char *_name(void *arg __attribute__((unused)))
 {
 
+	fprintf(stderr, "hello, in _name.\n");
 	char *ret = NULL;
 	PyObject *ret_pyfunc = NULL;
 
@@ -145,9 +223,55 @@ static const char *_name(void *arg __attribute__((unused)))
 	}
 
 	ret = (char *)PyString_AsString(ret_pyfunc);
-	Py_DECREF(ret_pyfunc);
+	Py_XDECREF(ret_pyfunc);
 
 	return ret;
+}
+#else
+
+__attribute__((unused))
+static const char *_name(void *arg __attribute__((unused)))
+{
+
+	fprintf(stderr, "hello, in _name.\n");
+	return "hello";
+}
+#endif
+
+__attribute__((unused))
+static void CmpDestroy(void* arg) { }
+
+#if 0
+static int CmpCompare(void* arg, const char* a, size_t alen,
+                      const char* b, size_t blen) {
+  int n = (alen < blen) ? alen : blen;
+  int r = memcmp(a, b, n);
+  if (r == 0) {
+    if (alen < blen) r = -1;
+    else if (alen > blen) r = +1;
+  }
+  return r;
+}
+#else
+
+__attribute__((unused))
+static int CmpCompare(void* arg, const char* a, size_t alen,
+                      const char* b, size_t blen) {
+  int n = (alen < blen) ? alen : blen;
+  int r = memcmp(a, b, n);
+  if (r > 0) return -1;
+  if (r < 0) return 1;
+  if (r == 0) {
+    if (alen < blen) r = 1;
+    else if (alen > blen) r = -1;
+  }
+  return r;
+}
+#endif
+
+__attribute__((unused))
+static const char* CmpName(void* arg) {
+  return "foo";
 }
 
 static void LevelDB_dealloc(LevelDB* self)
@@ -293,6 +417,7 @@ static PyObject* Comparator_new(PyTypeObject* type, PyObject* args, PyObject* kw
 static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 {
 	// cleanup
+	fprintf(stderr, "hello in LevelDB_init.\n");
 	if (self->_db || self->_cache || self->_options
 			|| self->_env || self->_roptions) {
 		Py_BEGIN_ALLOW_THREADS
@@ -323,9 +448,11 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	int max_open_files = 1000;
 	int block_restart_interval = 16;
 	PyObject *compression = Py_False;
-	Comparator *comparator = NULL;
+	Comparator *cmp = NULL;
 
 	const char* kwargs[] = {"filename", "create_if_missing", "error_if_exists", "paranoid_checks", "write_buffer_size", "block_size", "max_open_files", "block_restart_interval", "block_cache_size", "compression", "comparator", 0};
+
+	fprintf(stderr, "hello, beginning argument parsing in LevelDB_init.\n");
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s|O!O!O!iiiiiO!O!", (char**)kwargs,
 		&db_dir,
@@ -338,8 +465,10 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		&block_restart_interval,
 		&block_cache_size,
 		&PyBool_Type, &compression,
-		&ComparatorType, &comparator))
+		&ComparatorType, &cmp)) {
+		fprintf(stderr, "oooops, errors occured in parsing argument LevelDB_init.\n");
 		return -1;
+	}
 
 	if (write_buffer_size <= 0 || block_size <= 0 || max_open_files <= 0 || block_restart_interval <= 0 || block_cache_size <= 0) {
 		PyErr_Format(LevelDBError, "Arguments here must be greater than 0, please check.\n");
@@ -389,15 +518,15 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	leveldb_options_set_compression(self->_options, (compression == Py_True) ? 1 : 0);
 	leveldb_options_set_env(self->_options, self->_env);
 	leveldb_options_set_info_log(self->_options, NULL);
-
-	if (comparator != NULL) {
-		if (!Comparator_Check(comparator)) {
+#if 1 
+	if (cmp != NULL) {
+		if (!Comparator_Check(cmp)) {
 			PyErr_Format(PyExc_TypeError, "argument comparator must be ComparatorType.\n");
 			return -1;
 		}
 	}
-	leveldb_options_set_comparator(self->_options, comparator->_comparator);
-	
+	leveldb_options_set_comparator(self->_options, cmp->_comparator);
+#endif
 	char *err = NULL;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -510,6 +639,9 @@ static int Iterator_init(Iterator *self, PyObject* args, PyObject* kwds)
 
 static int Comparator_init(Comparator *self, PyObject* args, PyObject* kwds)
 {
+	fprintf(stderr, "hello int Comparator_init.\n");
+
+	
 	static char* kwargs[] = {"destructor", "compare", "name",0};
 
 	PyObject *t_desctructor_callback = NULL;
@@ -527,35 +659,52 @@ static int Comparator_init(Comparator *self, PyObject* args, PyObject* kwds)
 
 	fprintf(stderr, "beginning parsing arguments now...\n ");
 	if (PyArg_ParseTupleAndKeywords(args, kwds, (const char*)"OOO", kwargs, &t_desctructor_callback, &t_compare_callbak, &t_name_callback)) {
-		if (!PyCallable_Check(desctructor_callback)
-				|| !PyCallable_Check(compare_callbak)
-				|| !PyCallable_Check(name_callback)) {
-            PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+
+		if (!PyCallable_Check(t_desctructor_callback)
+				|| !PyCallable_Check(t_compare_callbak)
+				|| !PyCallable_Check(t_name_callback)) {
+            PyErr_SetString(PyExc_TypeError, "parameter in Comparator_init() must be callable");
             return -1;
         }
 
 		fprintf(stderr,"arguments parse is ok.\n");
 
 		Py_XINCREF(t_desctructor_callback);
-        Py_DECREF(desctructor_callback);
+        Py_XDECREF(desctructor_callback);
         desctructor_callback = t_desctructor_callback;		
 
 		Py_XINCREF(t_compare_callbak);
-        Py_DECREF(compare_callbak);
+        Py_XDECREF(compare_callbak);
         compare_callbak = t_compare_callbak;		
 
 		Py_XINCREF(t_name_callback);
-        Py_DECREF(name_callback);
+        Py_XDECREF(name_callback);
         name_callback = t_name_callback;		
+#if 0
+		PyObject *ret = NULL;
+		ret = PyObject_CallFunctionObjArgs(name_callback, NULL);
+		char *result = PyString_AsString(ret);
+		fprintf(stderr, "hello, call name_callback, return value %s.\n", result);
+#endif
+#if 1
 
-		self->_comparator = leveldb_comparator_create(NULL, _destructor, _compare, _name);
+		PyObject *ret = NULL;
+		ret = PyObject_CallFunction(compare_callbak, "ss","aaa","bbb");
+		int result = PyInt_AsLong(ret);
+		fprintf(stderr, "hello call compare_callbak, return value is %d.\n", result);
+#endif
+		fprintf(stderr, "hello, beginning leveldb_comparator_create call.\n");
+		self->_comparator = leveldb_comparator_create(NULL, _destructor, CmpCompare, _name);
+		//self->_comparator = leveldb_comparator_create(NULL, CmpDestroy, CmpCompare, CmpName);
 		if (self->_comparator == NULL) {
 			PyErr_Format(LevelDBError, "Failed to create comparator.\n");
+			return -1;
 		}
 	} else {
 		return -1;
 	}
 
+	fprintf(stderr, "bye, end of Comparator_init.\n");
 	return 0;
 }
 
@@ -723,6 +872,34 @@ static PyObject * LevelDB_Close(LevelDB *self, PyObject *args)
 	leveldb_env_destroy(self->_env);
 
 	leveldb_readoptions_destroy(self->_roptions);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject * LevelDB_Compare(LevelDB *self, PyObject *args)
+{
+
+	fprintf(stderr, "hello, in LevelDB_Compare.\n");
+	int ret = 0;
+	PyObject *ret_pyfunc = NULL;
+	const char *a;
+	const char *b;
+	size_t alen, blen;
+	if (!PyArg_ParseTuple(args, (char*)"t#t#", &a, &alen, &b, &blen))
+		return NULL;
+	ret = compare(NULL, a, alen, b, blen);
+#if 0
+	ret_pyfunc = PyObject_CallFunction(compare_callbak, "ss", "aaa", "bbb");
+
+	if (ret_pyfunc == NULL) {
+		PyErr_Format(LevelDBError, "error occurs in compare operation.\n");
+		return 0;
+	}
+
+	ret = (int)PyInt_AsLong(ret_pyfunc);
+	Py_XDECREF(ret_pyfunc);
+#endif
+	fprintf(stderr, "oops, LevelDB_Compare returned value: %d.\n",ret);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -983,6 +1160,7 @@ static PyMethodDef LevelDB_methods[] = {
 	{(char*)"Property",    (PyCFunction)LevelDB_Property,    METH_KEYWORDS, (char*)"get a property value" },
 	{(char*)"RepairDB",    (PyCFunction)LevelDB_RepairDB,    METH_KEYWORDS, (char*)"repair database" },
 	{(char*)"Close",    (PyCFunction)LevelDB_Close,    METH_KEYWORDS, (char*)"close database" },
+	{(char*)"Compare",    (PyCFunction)LevelDB_Compare,    METH_KEYWORDS, (char*)"compare two objects" },
 	{NULL}
 };
 
@@ -1238,6 +1416,7 @@ PyTypeObject ComparatorType = {
 PyMODINIT_FUNC
 initleveldb(void)
 {
+	fprintf(stderr, "hello, in initleveldb.\n");
 	PyObject *dict, *value;
 	PyObject* leveldb_module = Py_InitModule3((char*)"leveldb", LevelDB_methods, 0);
 
@@ -1255,6 +1434,10 @@ initleveldb(void)
 
 	if (PyType_Ready(&IteratorType) < 0)
 		return;
+
+	if (PyType_Ready(&ComparatorType) < 0)
+		return;
+
 	dict = PyModule_GetDict(leveldb_module);
 
 	value = PyString_FromString("Fu Haiping <haipingf@gmail.com>");
@@ -1298,6 +1481,7 @@ initleveldb(void)
 	Py_INCREF(LevelDBError);
 	if (PyModule_AddObject(leveldb_module, (char *)"LevelDBError", LevelDBError) != 0)
 		return;
+	fprintf(stderr, "bye, end of initleveldb.\n");
 }
 /* 
  * vim:ts=4:sw=4
