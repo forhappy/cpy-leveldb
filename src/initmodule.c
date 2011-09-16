@@ -45,10 +45,10 @@ initleveldb(void)
 
 	if (PyType_Ready(&IteratorType) < 0)
 		return;
-
-//	if (PyType_Ready(&ComparatorType) < 0)
-//		return;
-
+#if ENBALE_COMPARATOR
+	if (PyType_Ready(&ComparatorType) < 0)
+		return;
+#endif
 	dict = PyModule_GetDict(leveldb_module);
 
 	value = PyString_FromString("Fu Haiping <haipingf@gmail.com>");
@@ -84,10 +84,11 @@ initleveldb(void)
 	Py_INCREF(&IteratorType);
 	if (PyModule_AddObject(leveldb_module, (char*)"Iterator", (PyObject*)&IteratorType) != 0)
 		return;
-//
-//	Py_INCREF(&ComparatorType);
-//	if (PyModule_AddObject(leveldb_module, (char*)"Comparator", (PyObject*)&ComparatorType) != 0)
-//		return;
+#ifdef ENBALE_COMPARATOR
+	Py_INCREF(&ComparatorType);
+	if (PyModule_AddObject(leveldb_module, (char*)"Comparator", (PyObject*)&ComparatorType) != 0)
+		return;
+#endif
 
 	Py_INCREF(LevelDBError);
 	if (PyModule_AddObject(leveldb_module, (char *)"LevelDBError", LevelDBError) != 0)

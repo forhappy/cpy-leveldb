@@ -25,7 +25,7 @@
 #define CPY_LEVLEDB_DEBUG 1
 
 /* switch ENABLE_COMPARATOR off to compile without comparator enabled. */
-//#define ENABLE_COMPARATOR 0 
+#define ENABLE_COMPARATOR 1 
 
 
 /* Helper micros */
@@ -57,6 +57,11 @@
  #define VERBOSE(format, args...) (void)0 /* do nothing */
 #endif
 
+/* callback function pointer used in Comparator. */
+extern PyObject *desctructor_callback;
+extern PyObject *compare_callbak;
+extern PyObject *name_callback;
+
 /* Types. */
 extern PyTypeObject LevelDBType;
 extern PyTypeObject WriteBatchType;
@@ -71,6 +76,7 @@ extern PyMethodDef LevelDB_methods[];
 extern PyMethodDef WriteBatch_methods[];
 extern PyMethodDef Snapshot_methods[];
 extern PyMethodDef Iterator_methods[];
+extern PyMethodDef Comparator_methods[];
 
 /* Error object. */
 extern PyObject *LevelDBError;
@@ -96,5 +102,5 @@ typedef struct {
 #include "iterator.h"
 #include "snapshot.h"
 #include "write_batch.h"
-
+#include "comparator.h"
 #endif
