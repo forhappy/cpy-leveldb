@@ -22,6 +22,7 @@
 #include "snapshot.h"
 #include "comparator.h"
 
+
 PyObject *LevelDBError = NULL;
 
 PyMODINIT_FUNC
@@ -45,7 +46,7 @@ initleveldb(void)
 
 	if (PyType_Ready(&IteratorType) < 0)
 		return;
-#if ENBALE_COMPARATOR
+#ifdef ENABLE_COMPARATOR
 	if (PyType_Ready(&ComparatorType) < 0)
 		return;
 #endif
@@ -84,7 +85,7 @@ initleveldb(void)
 	Py_INCREF(&IteratorType);
 	if (PyModule_AddObject(leveldb_module, (char*)"Iterator", (PyObject*)&IteratorType) != 0)
 		return;
-#ifdef ENBALE_COMPARATOR
+#ifdef ENABLE_COMPARATOR 
 	Py_INCREF(&ComparatorType);
 	if (PyModule_AddObject(leveldb_module, (char*)"Comparator", (PyObject*)&ComparatorType) != 0)
 		return;

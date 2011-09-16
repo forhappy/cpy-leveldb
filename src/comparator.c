@@ -291,6 +291,8 @@ static int Comparator_init(Comparator *self, PyObject* args, PyObject* kwds)
 		VERBOSE("%s", "Hello, beginning leveldb_comparator_create.\n");
 		self->_comparator = leveldb_comparator_create(NULL, _destructor, CmpCompare, _name);
 		//self->_comparator = leveldb_comparator_create(NULL, CmpDestroy, CmpCompare, CmpName);
+		//self->_comparator = leveldb_comparator_create(NULL, _destructor, compare, _name);
+	
 		if (self->_comparator == NULL) {
 			PyErr_Format(LevelDBError, "Failed to create comparator.\n");
 			return -1;
