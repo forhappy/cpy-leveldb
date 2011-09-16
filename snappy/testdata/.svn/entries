@@ -1,7 +1,7 @@
 10
 
 dir
-48
+50
 http://snappy.googlecode.com/svn/trunk/testdata
 http://snappy.googlecode.com/svn
 
@@ -60,40 +60,6 @@ snappy.mirrorbot@gmail.com
 
 702087
 
-grammar.lsp
-file
-
-
-
-
-2011-09-02T14:38:19.050038Z
-ad6ff075a8058262564493050f67f702
-2011-03-18T17:14:15.791421Z
-2
-snappy.mirrorbot@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-3721
-
 xargs.1
 file
 
@@ -127,6 +93,40 @@ snappy.mirrorbot@gmail.com
 
 
 4227
+
+grammar.lsp
+file
+
+
+
+
+2011-09-02T14:38:19.050038Z
+ad6ff075a8058262564493050f67f702
+2011-03-18T17:14:15.791421Z
+2
+snappy.mirrorbot@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3721
 
 fields.c
 file
@@ -264,40 +264,6 @@ has-props
 
 481861
 
-kennedy.xls
-file
-
-
-
-
-2011-09-02T14:38:19.146038Z
-b408d2207b18aba5a378548698735d64
-2011-03-18T17:14:15.791421Z
-2
-snappy.mirrorbot@gmail.com
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1029744
-
 house.jpg
 file
 
@@ -332,17 +298,18 @@ has-props
 
 126958
 
-html
+kennedy.xls
 file
 
 
 
 
-2011-09-02T14:38:19.154038Z
-fbb33303ec4e491cda0c1e6158f92c89
+2011-09-02T14:38:19.146038Z
+b408d2207b18aba5a378548698735d64
 2011-03-18T17:14:15.791421Z
 2
 snappy.mirrorbot@gmail.com
+has-props
 
 
 
@@ -363,8 +330,7 @@ snappy.mirrorbot@gmail.com
 
 
 
-
-102400
+1029744
 
 sum
 file
@@ -400,6 +366,40 @@ has-props
 
 38240
 
+html
+file
+
+
+
+
+2011-09-02T14:38:19.154038Z
+fbb33303ec4e491cda0c1e6158f92c89
+2011-03-18T17:14:15.791421Z
+2
+snappy.mirrorbot@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+102400
+
 cp.html
 file
 
@@ -434,16 +434,16 @@ has-props
 
 24603
 
-alice29.txt
+geo.protodata
 file
 
 
 
 
-2011-09-02T14:38:19.182038Z
-74c3b556c76ea0cfae111cdb64d08255
-2011-03-18T17:14:15.791421Z
-2
+2011-09-02T14:38:19.158038Z
+b736f02606a593ef84d09d1551f3b791
+2011-04-07T16:36:43.301690Z
+26
 snappy.mirrorbot@gmail.com
 has-props
 
@@ -466,7 +466,7 @@ has-props
 
 
 
-152089
+118588
 
 lcet10.txt
 file
@@ -502,16 +502,16 @@ has-props
 
 426754
 
-geo.protodata
+alice29.txt
 file
 
 
 
 
-2011-09-02T14:38:19.158038Z
-b736f02606a593ef84d09d1551f3b791
-2011-04-07T16:36:43.301690Z
-26
+2011-09-02T14:38:19.182038Z
+74c3b556c76ea0cfae111cdb64d08255
+2011-03-18T17:14:15.791421Z
+2
 snappy.mirrorbot@gmail.com
 has-props
 
@@ -534,7 +534,7 @@ has-props
 
 
 
-118588
+152089
 
 mapreduce-osdi-1.pdf
 file

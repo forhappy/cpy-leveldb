@@ -1,7 +1,7 @@
 K 25
 svn:wc:ra_dav:version-url
 V 22
-/svn/!svn/ver/48/trunk
+/svn/!svn/ver/50/trunk
 END
 snappy-stubs-public.h.in
 K 25
@@ -37,19 +37,19 @@ ChangeLog
 K 25
 svn:wc:ra_dav:version-url
 V 32
-/svn/!svn/ver/40/trunk/ChangeLog
-END
-snappy_unittest.cc
-K 25
-svn:wc:ra_dav:version-url
-V 41
-/svn/!svn/ver/48/trunk/snappy_unittest.cc
+/svn/!svn/ver/50/trunk/ChangeLog
 END
 README
 K 25
 svn:wc:ra_dav:version-url
 V 29
 /svn/!svn/ver/27/trunk/README
+END
+snappy_unittest.cc
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/48/trunk/snappy_unittest.cc
 END
 snappy.cc
 K 25
@@ -67,7 +67,7 @@ configure.ac
 K 25
 svn:wc:ra_dav:version-url
 V 35
-/svn/!svn/ver/40/trunk/configure.ac
+/svn/!svn/ver/50/trunk/configure.ac
 END
 snappy-stubs-internal.cc
 K 25
@@ -75,17 +75,17 @@ svn:wc:ra_dav:version-url
 V 47
 /svn/!svn/ver/20/trunk/snappy-stubs-internal.cc
 END
+snappy-stubs-internal.h
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/49/trunk/snappy-stubs-internal.h
+END
 COPYING
 K 25
 svn:wc:ra_dav:version-url
 V 30
 /svn/!svn/ver/20/trunk/COPYING
-END
-snappy-stubs-internal.h
-K 25
-svn:wc:ra_dav:version-url
-V 46
-/svn/!svn/ver/47/trunk/snappy-stubs-internal.h
 END
 format_description.txt
 K 25
@@ -121,7 +121,7 @@ NEWS
 K 25
 svn:wc:ra_dav:version-url
 V 27
-/svn/!svn/ver/40/trunk/NEWS
+/svn/!svn/ver/50/trunk/NEWS
 END
 snappy-test.h
 K 25
