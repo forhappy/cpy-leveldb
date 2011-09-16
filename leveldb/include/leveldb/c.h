@@ -154,7 +154,7 @@ extern void leveldb_iter_get_error(const leveldb_iterator_t*, char** errptr);
 
 /* Write batch */
 
-extern leveldb_writebatch_t* leveldb_writebatch_create();
+extern leveldb_writebatch_t* leveldb_writebatch_create(void);
 extern void leveldb_writebatch_destroy(leveldb_writebatch_t*);
 extern void leveldb_writebatch_clear(leveldb_writebatch_t*);
 extern void leveldb_writebatch_put(
@@ -172,7 +172,7 @@ extern void leveldb_writebatch_iterate(
 
 /* Options */
 
-extern leveldb_options_t* leveldb_options_create();
+extern leveldb_options_t* leveldb_options_create(void);
 extern void leveldb_options_destroy(leveldb_options_t*);
 extern void leveldb_options_set_comparator(
     leveldb_options_t*,
@@ -211,7 +211,7 @@ extern void leveldb_comparator_destroy(leveldb_comparator_t*);
 
 /* Read options */
 
-extern leveldb_readoptions_t* leveldb_readoptions_create();
+extern leveldb_readoptions_t* leveldb_readoptions_create(void);
 extern void leveldb_readoptions_destroy(leveldb_readoptions_t*);
 extern void leveldb_readoptions_set_verify_checksums(
     leveldb_readoptions_t*,
@@ -224,7 +224,7 @@ extern void leveldb_readoptions_set_snapshot(
 
 /* Write options */
 
-extern leveldb_writeoptions_t* leveldb_writeoptions_create();
+extern leveldb_writeoptions_t* leveldb_writeoptions_create(void);
 extern void leveldb_writeoptions_destroy(leveldb_writeoptions_t*);
 extern void leveldb_writeoptions_set_sync(
     leveldb_writeoptions_t*, unsigned char);
@@ -236,7 +236,7 @@ extern void leveldb_cache_destroy(leveldb_cache_t* cache);
 
 /* Env */
 
-extern leveldb_env_t* leveldb_create_default_env();
+extern leveldb_env_t* leveldb_create_default_env(void);
 extern void leveldb_env_destroy(leveldb_env_t*);
 
 #ifdef __cplusplus
