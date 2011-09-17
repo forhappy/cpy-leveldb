@@ -563,33 +563,40 @@ static PyObject *LevelDB_ApproximateSizes(LevelDB *self, PyObject *args, PyObjec
 		range_limit_key[i][strlen(char_obj)] = '\0';
 
 	} /* end of objects extraction */
-
+#if CPY_LEVELDB_DEBUG
 	for (int i = 0; i < num_ranges; i++) {
 		VERBOSE("num_ranges:%d\n", num_ranges);
 		VERBOSE("range %d:range_start_keys:\n%s:%d\n", i, range_start_key[i], start_len[i]);
 		VERBOSE("range %d:range_limit_keys:\n%s:%d\n", i, range_limit_key[i], limit_len[i]);
 	}
+#endif
+
 	if (self->_db != NULL) {
 		leveldb_approximate_sizes(self->_db, num_ranges, 
 				(const char * const *)range_start_key, start_len,
 				(const char * const *)range_limit_key, limit_len,
 				sizes);
+#ifdef CPY_LEVELDB_DEBUG
 		for (int i = 0; i < num_ranges; i++) {
 			VERBOSE("Range %d,sizes:%llu\n", i, sizes[i]);
 		}
+#endif
 	}
 
 	/* build return tuple. */
 	sizes_tuple = PyTuple_New(num_ranges);
+
 	if (sizes_tuple != NULL) {
 		for (int i = 0; i < num_ranges; i++) {
 			PyObject *tmp = NULL;
 			tmp = Py_BuildValue("i", sizes[i]);
+			Py_XINCREF(tmp);
 			PyTuple_SetItem(sizes_tuple, i, tmp);
 			Py_XDECREF(tmp);
 		}
 	}
 
+	Py_INCREF(sizes_tuple);
 	return sizes_tuple;
 }
 
