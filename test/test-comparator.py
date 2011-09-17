@@ -21,6 +21,3 @@ db.Put("1", "1111")
 db.Put("2", "2222")
 print db.Get("2")
 print db.Get("hello")
-
-
-

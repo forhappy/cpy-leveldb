@@ -505,6 +505,95 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+static PyObject *LevelDB_ApproximateSizes(LevelDB *self, PyObject *args, PyObject *kwds)
+{
+	const char *kwargs[] = {"num_ranges", "range_start_key", "range_limit_key", 0};
+	int num_ranges;
+	PyObject *range_start_key_tuple = NULL;
+	PyObject *range_limit_key_tuple = NULL;
+	PyObject *sizes_tuple = NULL;
+
+	if (PyArg_ParseTupleAndKeywords(args, kwds, (char *)"iO!O!", (char **)kwargs,\
+				&num_ranges, 
+				&PyTuple_Type, &range_start_key_tuple, 
+				&PyTuple_Type, &range_limit_key_tuple)) {
+		if (!PyTuple_Check(range_start_key_tuple) 
+				|| !PyTuple_Check(range_limit_key_tuple)) {
+			PyErr_SetString(PyExc_TypeError, "Parameters (range_start_key,range_limit_key) \
+					in LevelDB_ApproximateSizes() must be tuples.\n");
+			return NULL;
+		}
+	} else 
+		return NULL;
+	if (num_ranges != PyTuple_Size(range_start_key_tuple)
+			&& num_ranges != PyTuple_Size(range_limit_key_tuple)) {
+		PyErr_SetString(PyExc_ValueError, "Num_ranges didnot match range_start_key or range_limit_key sizes.\n");
+		return NULL;
+	}
+
+	char **range_start_key = (char **)malloc(num_ranges * sizeof(char *));
+	char **range_limit_key = (char **)malloc(num_ranges * sizeof(char *));
+
+	size_t *start_len = (size_t *)malloc(num_ranges * sizeof(size_t));
+	size_t *limit_len = (size_t *)malloc(num_ranges * sizeof(size_t));
+	uint64_t *sizes = (uint64_t *)malloc(num_ranges * sizeof(uint64_t));
+
+	/* extract objects from range_start_key_tuple and range_limit_key_tuple. */
+	for (int i = 0; i < num_ranges; i++) {
+		PyObject *obj_start_key = NULL;
+		PyObject *obj_limit_key = NULL;
+		char *char_obj = NULL;
+
+		obj_start_key = PyTuple_GetItem(range_start_key_tuple, i);
+		char_obj = PyString_AsString(obj_start_key);
+		Py_XDECREF(obj_start_key);
+		range_start_key[i] = (char *) malloc((strlen(char_obj) + 1) * sizeof(char));
+		memcpy(range_start_key[i], char_obj, strlen(char_obj));
+		start_len[i] = strlen(char_obj);
+		//_XDECREF(char_obj);
+		range_start_key[i][strlen(char_obj)] = '\0';
+
+		obj_limit_key = PyTuple_GetItem(range_limit_key_tuple, i);
+		char_obj = PyString_AsString(obj_limit_key);
+		Py_XDECREF(obj_limit_key);
+		range_limit_key[i] = (char *) malloc((strlen(char_obj) + 1) * sizeof(char));
+		memcpy(range_limit_key[i], char_obj, strlen(char_obj));
+		limit_len[i] = strlen(char_obj);
+		//_XDECREF(char_obj);
+		range_limit_key[i][strlen(char_obj)] = '\0';
+
+	} /* end of objects extraction */
+
+	for (int i = 0; i < num_ranges; i++) {
+		VERBOSE("num_ranges:%d\n", num_ranges);
+		VERBOSE("range %d:range_start_keys:\n%s:%d\n", i, range_start_key[i], start_len[i]);
+		VERBOSE("range %d:range_limit_keys:\n%s:%d\n", i, range_limit_key[i], limit_len[i]);
+	}
+	if (self->_db != NULL) {
+		leveldb_approximate_sizes(self->_db, num_ranges, 
+				(const char * const *)range_start_key, start_len,
+				(const char * const *)range_limit_key, limit_len,
+				sizes);
+		for (int i = 0; i < num_ranges; i++) {
+			VERBOSE("Range %d,sizes:%llu\n", i, sizes[i]);
+		}
+	}
+
+	/* build return tuple. */
+	sizes_tuple = PyTuple_New(num_ranges);
+	if (sizes_tuple != NULL) {
+		for (int i = 0; i < num_ranges; i++) {
+			PyObject *tmp = NULL;
+			tmp = Py_BuildValue("i", sizes[i]);
+			PyTuple_SetItem(sizes_tuple, i, tmp);
+			Py_XDECREF(tmp);
+		}
+	}
+
+	return sizes_tuple;
+}
+
+
 
 PyMethodDef LevelDB_methods[] = {
 	{(char*)"Put",       (PyCFunction)LevelDB_Put,       METH_KEYWORDS, (char*)"add a key/value pair to database, with an optional synchronous disk write" },
@@ -513,6 +602,7 @@ PyMethodDef LevelDB_methods[] = {
 	{(char*)"Write",    (PyCFunction)LevelDB_Write,    METH_KEYWORDS, (char*)"apply a writebatch in database" },
 	{(char*)"Property",    (PyCFunction)LevelDB_Property,    METH_KEYWORDS, (char*)"get a property value" },
 	{(char*)"RepairDB",    (PyCFunction)LevelDB_RepairDB,    METH_KEYWORDS, (char*)"repair database" },
+	{(char*)"GetApproximateSizes",    (PyCFunction)LevelDB_ApproximateSizes,    METH_KEYWORDS, (char*)"get approximate sizes." },
 	{(char*)"Close",    (PyCFunction)LevelDB_Close,    METH_KEYWORDS, (char*)"close database" },
 	//{(char*)"Compare",    (PyCFunction)LevelDB_Compare,    METH_KEYWORDS, (char*)"compare two objects" },
 	{NULL}

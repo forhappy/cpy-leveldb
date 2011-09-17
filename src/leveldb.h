@@ -22,10 +22,10 @@
 #include "leveldb/c.h"
 
 /* switch CPY_LEVLEDB_DEBUG off to surpress debug information. */
-#define CPY_LEVLEDB_DEBUG 1
+#define CPY_LEVLEDB_DEBUG 1 
 
 /* switch ENABLE_COMPARATOR off to compile without comparator enabled. */
-#define ENABLE_COMPARATOR 1 
+//#define ENABLE_COMPARATOR 1 
 
 
 /* Helper micros */
@@ -51,10 +51,11 @@
 
 /* Debug utils. */
 #ifdef CPY_LEVLEDB_DEBUG
- #define VERBOSE(format, ...) fprintf(stderr, "-*-\nFilename:%s\nLine number:%d\nFunction name:%s\n-*-\n"format,\
+ #define VERBOSE(format, ...) fprintf(stderr,\
+		 "---***---\nFilename:%s\nLine number:%d\nFunction name:%s\n***---***\n"format"\n\n",\
 		 __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
- #define VERBOSE(format, args...) (void)0 /* do nothing */
+ #define VERBOSE(format, ...) (void)0 /* do nothing */
 #endif
 
 /* callback function pointer used in Comparator. */
