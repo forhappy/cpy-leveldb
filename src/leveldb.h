@@ -22,7 +22,7 @@
 #include "leveldb/c.h"
 
 /* switch CPY_LEVLEDB_DEBUG off to surpress debug information. */
-#define CPY_LEVLEDB_DEBUG 1 
+//#define CPY_LEVLEDB_DEBUG 1 
 
 /* switch ENABLE_COMPARATOR off to compile without comparator enabled. */
 //#define ENABLE_COMPARATOR 1 

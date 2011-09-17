@@ -1,2 +1,2 @@
-smaple tutorial.
+See test/test-*.py for test suite and usage.
 to be continued:)
