@@ -51,6 +51,7 @@ static void _destructor(void *arg __attribute__((unused)))
 	VERBOSE("%s", "Hello, I'm now in _destructor.\n");
 	return;
 
+
 }
 #endif
 
@@ -109,7 +110,7 @@ static int _compare(void *arg __attribute__((unused)),
 
 	if (compare_callbak != NULL) {
 		if(PyCallable_Check(compare_callbak)) {
-			fprintf(stderr, "yes, it is callable, i'm now in python callback in _compare.\n");
+			VERBOSE("%s", "yes, it is callable, i'm now in python callback in _compare.\n");
 			ret_pyfunc = PyObject_CallFunction(compare_callbak, "ss", abuf, bbuf);
 			VERBOSE("%s","O.k., end of callback now.\n");
 		}
@@ -281,7 +282,7 @@ static int Comparator_init(Comparator *self, PyObject* args, PyObject* kwds)
 		Py_XINCREF(t_name_callback);
         Py_XDECREF(name_callback);
         name_callback = t_name_callback;		
-#if 1
+#if 0
 
 		PyObject *ret = NULL;
 		ret = PyObject_CallFunction(compare_callbak, "ss","aaa","bbb");
@@ -303,8 +304,40 @@ static int Comparator_init(Comparator *self, PyObject* args, PyObject* kwds)
 	VERBOSE("%s", "Bye, end of Comparator_init.\n");
 	return 0;
 }
+#if ENABLE_COMPARATOR
+static PyObject * Comparator_Compare(Comparator *self, PyObject *args)
+{
+
+	VERBOSE("%s", "Hi, I'm entering Comparator_Compare().\n");
+	int ret = 0;
+	PyObject *ret_pyfunc = NULL;
+	const char *a;
+	const char *b;
+	size_t alen, blen;
+	if (!PyArg_ParseTuple(args, (char*)"t#t#", &a, &alen, &b, &blen))
+		return NULL;
+	ret = compare(NULL, a, alen, b, blen);
+#if 0 
+	ret_pyfunc = PyObject_CallFunction(compare_callbak, "ss", "aaa", "bbb");
+
+	if (ret_pyfunc == NULL) {
+		PyErr_Format(LevelDBError, "error occurs in compare operation.\n");
+		return 0;
+	}
+
+	ret = (int)PyInt_AsLong(ret_pyfunc);
+	Py_XDECREF(ret_pyfunc);
+#endif
+	VERBOSE("Oops, Comparator_Compare() returned value: %d.\n",ret);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+#endif
 
 PyMethodDef Comparator_methods[] = {
+#ifdef ENABLE_COMPARATOR
+	{(char *)"Compare", (PyCFunction)Comparator_Compare, METH_VARARGS, (char *)"compare two string."},
+#endif
 	{NULL}
 };
 
