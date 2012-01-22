@@ -36,11 +36,11 @@
 #define _XDECREF(ptr) do { if ((ptr) != NULL) free((ptr));} while(0)
 #endif
 
-#define LEVELDB_DEFINE_KVBUF(buf) const char * s_##buf = NULL; size_t i_##buf
+#define LEVELDB_DEFINE_KVBUF(buf) const char * s_##buf = NULL; size_t i_##buf = 0
 
 /* Version micros */
-#define CPY_LEVELDB_MODULE_VERSION "0.3.0"
-#define CPY_LEVELDB_VERSION_DATE   "2011-09-16"
+#define CPY_LEVELDB_MODULE_VERSION "0.4.0"
+#define CPY_LEVELDB_VERSION_DATE   "2012-1-21"
 
 /* Type check micros */
 #define LevelDB_Check(op) PyObject_TypeCheck(op, &LevelDBType)
@@ -49,7 +49,7 @@
 #define Iterator_Check(op) PyObject_TypeCheck(op, &IteratorType)
 
 /* Debug utils. */
-#ifdef CPY_LEVLEDB_DEBUG
+#ifdef CPY_LEVELDB_DEBUG
  #define VERBOSE(format, ...) fprintf(stderr,\
 		 "---***---\nFilename:%s\nLine number:%d\nFunction name:%s\n***---***\n"format"\n\n",\
 		 __FILE__, __LINE__, __func__, ##__VA_ARGS__)
@@ -96,4 +96,5 @@ typedef struct {
 #include "iterator.h"
 #include "snapshot.h"
 #include "write_batch.h"
+#include "range_iterator.h"
 #endif

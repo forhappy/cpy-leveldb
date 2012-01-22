@@ -5,9 +5,9 @@
  *
  *    Description:  python binding for leveldb based on c api.
  *
- *        Version:  0.3.0
+ *        Version:  0.4.0
  *        Created:  09/16/2011 05:44:40 PM
- *       Revision:  r15
+ *       Revision:  r20
  *       Compiler:  gcc
  *
  *         Author:  Fu Haiping <haipingf@gmail.com>
@@ -370,6 +370,7 @@ static PyObject * LevelDB_Close(LevelDB *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
 #if 0
 /* dummy function */
 static PyObject * LevelDB_Compare(LevelDB *self, PyObject *args)
@@ -478,6 +479,87 @@ static PyObject *LevelDB_RepairDB(LevelDB* self, PyObject* args, PyObject* kwds)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+static PyObject* LevelDB_RangeIter(LevelDB* self, PyObject* args, PyObject* kwds)
+{
+
+	LEVELDB_DEFINE_KVBUF(key_from);
+	LEVELDB_DEFINE_KVBUF(key_to);
+
+	PyObject* verify_checksums = Py_False;
+	PyObject* fill_cache = Py_True;
+	PyObject* include_value = Py_True;
+	const char* kwargs[] = {"key_from", "key_to", "verify_checksums", "fill_cache", "include_value", 0};
+
+    VERBOSE("%s", "Entering LevelDB_RangeIter...");
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"|t#t#O!O!O!", (char**)kwargs, &s_key_from, &i_key_from, &s_key_to, &i_key_to, &PyBool_Type, &verify_checksums, &PyBool_Type, &fill_cache, &PyBool_Type, &include_value))
+		return 0;
+
+	char *from;
+	char *to;
+
+    leveldb_readoptions_t *roptions;
+    roptions = leveldb_readoptions_create();
+    if (roptions == NULL) return NULL;
+
+	leveldb_readoptions_set_verify_checksums(roptions, ((verify_checksums == Py_True) ? 1 : 0));
+	leveldb_readoptions_set_fill_cache(roptions, ((fill_cache == Py_True) ? 1 : 0));
+
+
+	int is_from = (s_key_from != NULL);
+	int is_to = (s_key_to != NULL);
+
+	if (is_from) {
+		from = (char *) malloc(sizeof(char) * i_key_from);
+        strncpy(from, s_key_from, i_key_from);
+    }
+	if (is_to) {
+		to = (char *) malloc(sizeof(char) * i_key_to);
+        strncpy(to, s_key_to, i_key_to);
+    }
+
+	// create iterator
+	leveldb_iterator_t *iter = NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+    iter = leveldb_create_iterator(self->_db, roptions);
+
+	// if we have an iterator
+	if (iter) {
+		// position iterator
+		if (!is_from)
+            leveldb_iter_seek_to_first(iter);
+		else
+            leveldb_iter_seek(iter, s_key_from, i_key_from);
+	}
+
+	Py_END_ALLOW_THREADS
+
+	if (iter == 0)
+		return PyErr_NoMemory();
+
+	// if iterator is empty, return an empty iterator object
+	if (!leveldb_iter_valid(iter)) {
+		_XDECREF(iter);
+		return RangeIterator_new(0, 0, 0, 0);
+	}
+
+	// otherwise, we're good
+	char *s = NULL;
+
+	if (is_to) {
+        s = (char *) malloc(sizeof(char) * i_key_to);
+        strncpy(s, s_key_to, i_key_to);
+
+		if (s == 0) {
+			_XDECREF(iter);
+			return PyErr_NoMemory();
+		}
+	}
+
+	return RangeIterator_new(self, iter, s, (include_value == Py_True) ? 1 : 0);
+}
+
 static PyObject *LevelDB_ApproximateSizes(LevelDB *self, PyObject *args, PyObject *kwds)
 {
 	const char *kwargs[] = {"num_ranges", "range_start_key", "range_limit_key", 0};
@@ -582,6 +664,7 @@ PyMethodDef LevelDB_methods[] = {
 	{(char*)"Write",    (PyCFunction)LevelDB_Write,    METH_KEYWORDS, (char*)"apply a writebatch in database" },
 	{(char*)"Property",    (PyCFunction)LevelDB_Property,    METH_KEYWORDS, (char*)"get a property value" },
 	{(char*)"RepairDB",    (PyCFunction)LevelDB_RepairDB,    METH_KEYWORDS, (char*)"repair database" },
+	{(char*)"RangeIter",    (PyCFunction)LevelDB_RangeIter,    METH_KEYWORDS, (char*)"range iterator" },
 	{(char*)"GetApproximateSizes",    (PyCFunction)LevelDB_ApproximateSizes,    METH_KEYWORDS, (char*)"get approximate sizes." },
 	{(char*)"Close",    (PyCFunction)LevelDB_Close,    METH_KEYWORDS, (char*)"close database" },
 	//{(char*)"Compare",    (PyCFunction)LevelDB_Compare,    METH_KEYWORDS, (char*)"compare two objects" },
