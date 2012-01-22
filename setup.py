@@ -47,8 +47,7 @@ setup(
 				'src/leveldb.c',
 				'src/write_batch.c',
 				'src/iterator.c',
-				'src/snapshot.c',
-				'src/comparator.c'
+				'src/snapshot.c'
 			],
 			extra_compile_args = extra_compile_args,
 			extra_link_args = extra_link_args

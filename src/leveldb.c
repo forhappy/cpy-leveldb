@@ -91,22 +91,9 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	int max_open_files = 1000;
 	int block_restart_interval = 16;
 	PyObject *compression = Py_False;
-#ifdef ENABLE_COMPARATOR
-	Comparator *comparator= NULL;
-#endif
-
-#ifdef ENABLE_COMPARATOR
-	const char* kwargs[] = {"filename", "create_if_missing", "error_if_exists", "paranoid_checks", "write_buffer_size", "block_size", "max_open_files", "block_restart_interval", "block_cache_size", "compression", "comparator", 0};
-#else
 	const char* kwargs[] = {"filename", "create_if_missing", "error_if_exists", "paranoid_checks", "write_buffer_size", "block_size", "max_open_files", "block_restart_interval", "block_cache_size", "compression", 0};
-#endif
-	VERBOSE("%s", "Entering arguments parsing in LevelDB_init.\n");
 
-#ifdef ENABLE_COMPARATOR
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s|O!O!O!iiiiiO!O!", (char**)kwargs,
-#else
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s|O!O!O!iiiiiO!", (char**)kwargs,
-#endif
 		&db_dir,
 		&PyBool_Type, &create_if_missing,
 		&PyBool_Type, &error_if_exists,
@@ -116,12 +103,7 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		&max_open_files,
 		&block_restart_interval,
 		&block_cache_size,
-#ifdef ENABLE_COMPARATOR
-		&PyBool_Type, &compression,
-		&ComparatorType, &comparator
-#else
 		&PyBool_Type, &compression 
-#endif
 		)) {
 		VERBOSE("%s", "Oooops, errors occured in parsing argument LevelDB_init.\n");
 		return -1;
@@ -175,15 +157,6 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	leveldb_options_set_compression(self->_options, (compression == Py_True) ? 1 : 0);
 	leveldb_options_set_env(self->_options, self->_env);
 	leveldb_options_set_info_log(self->_options, NULL);
-#ifdef ENABLE_COMPARATOR 
-	if (comparator!= NULL) {
-		if (!Comparator_Check(comparator)) {
-			PyErr_Format(PyExc_TypeError, "argument comparator must be ComparatorType.\n");
-			return -1;
-		}
-	}
-	leveldb_options_set_comparator(self->_options, comparator->_comparator);
-#endif
 	char *err = NULL;
 
 	Py_BEGIN_ALLOW_THREADS

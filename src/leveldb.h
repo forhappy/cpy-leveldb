@@ -47,7 +47,6 @@
 #define WriteBatch_Check(op) PyObject_TypeCheck(op, &WriteBatchType)
 #define Snapshot_Check(op) PyObject_TypeCheck(op, &SnapshotType)
 #define Iterator_Check(op) PyObject_TypeCheck(op, &IteratorType)
-#define Comparator_Check(op) PyObject_TypeCheck(op, &ComparatorType)
 
 /* Debug utils. */
 #ifdef CPY_LEVLEDB_DEBUG
@@ -58,17 +57,12 @@
  #define VERBOSE(format, ...) (void)0 /* do nothing */
 #endif
 
-/* callback function pointer used in Comparator. */
-extern PyObject *desctructor_callback;
-extern PyObject *compare_callbak;
-extern PyObject *name_callback;
 
 /* Types. */
 extern PyTypeObject LevelDBType;
 extern PyTypeObject WriteBatchType;
 extern PyTypeObject SnapshotType;
 extern PyTypeObject IteratorType;
-extern PyTypeObject ComparatorType;
 
 /* Object methods */
 
@@ -77,7 +71,6 @@ extern PyMethodDef LevelDB_methods[];
 extern PyMethodDef WriteBatch_methods[];
 extern PyMethodDef Snapshot_methods[];
 extern PyMethodDef Iterator_methods[];
-extern PyMethodDef Comparator_methods[];
 
 /* Error object. */
 extern PyObject *LevelDBError;
@@ -103,5 +96,4 @@ typedef struct {
 #include "iterator.h"
 #include "snapshot.h"
 #include "write_batch.h"
-#include "comparator.h"
 #endif
