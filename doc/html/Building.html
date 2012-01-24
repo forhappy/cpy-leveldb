@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Building the LevelDB Python bindings &mdash; cPy-LevelDB v0.4 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.4',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cPy-LevelDB v0.4 documentation" href="index.html" />
+    <link rel="next" title="LevelDB Object" href="LevelDB.html" />
+    <link rel="prev" title="cPy-LevelDB Tutorial" href="Tutorial.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="LevelDB.html" title="LevelDB Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Tutorial.html" title="cPy-LevelDB Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="building-the-leveldb-python-bindings">
+<h1>Building the LevelDB Python bindings<a class="headerlink" href="#building-the-leveldb-python-bindings" title="Permalink to this headline">¶</a></h1>
+<p>First checkout the version you want to build, <em>Always build from a particular tag, since HEAD may be
+a work in progress,</em> for example, to build version 0.4, run:</p>
+<div class="highlight-bash"><div class="highlight"><pre>git checkout v0.4
+</pre></div>
+</div>
+<p>Then follow the build steps below:</p>
+<p>First of all, you need to build the included <tt class="docutils literal"><span class="pre">snappy</span></tt> and  <tt class="docutils literal"><span class="pre">leveldb</span></tt> library.</p>
+<div class="section" id="building-snappy">
+<h2>Building <tt class="docutils literal"><span class="pre">Snappy</span></tt><a class="headerlink" href="#building-snappy" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd </span>snappy
+<span class="nv">$ </span>./configure <span class="o">&amp;&amp;</span> make <span class="o">&amp;&amp;</span> make install
+</pre></div>
+</div>
+</div>
+<div class="section" id="building-leveldb">
+<h2>Building <tt class="docutils literal"><span class="pre">LevelDB</span></tt><a class="headerlink" href="#building-leveldb" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd </span>leveldb
+<span class="nv">$ </span>make
+
+g++ -c -I. -I./include -fno-builtin-memcmp -DLEVELDB_PLATFORM_POSIX -DLEVELDB_CSTDATOMIC_PRESENT<span class="se">\</span>
+-std<span class="o">=</span>c++0x -pthread -DOS_LINUX -O2 -DNDEBUG -DSNAPPY util/histogram.cc -o util/histogram.o
+... ...
+g++ -c -I. -I./include -fno-builtin-memcmp -DLEVELDB_PLATFORM_POSIX -DLEVELDB_CSTDATOMIC_PRESENT<span class="se">\</span>
+-std<span class="o">=</span>c++0x -pthread -DOS_LINUX -O2 -DNDEBUG        -DSNAPPY util/options.cc -o util/options.o
+rm -f libleveldb.a
+ar -rs libleveldb.a ./db/builder.o ./db/c.o ./db/db_impl.o ./db/db_iter.o ./db/filename.o<span class="se">\</span>
+... ./util/histogram.o ./util/logging.o ./util/options.o ./util/status.o
+ar: creating libleveldb.a
+</pre></div>
+</div>
+</div>
+<div class="section" id="building-cpy-leveldb">
+<h2>Building <tt class="docutils literal"><span class="pre">cPy-LevelDB</span></tt><a class="headerlink" href="#building-cpy-leveldb" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py build
+
+running build
+running build_py
+running build_ext
+building <span class="s1">&#39;leveldb&#39;</span> extension
+gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes<span class="se">\</span>
+-fPIC -I/usr/include/python2.6 -c src/snapshot.c -o build/temp.linux-i686-2.6/src/snapshot.o<span class="se">\</span>
+-Wall -pedantic -I./leveldb/include/ -shared -std<span class="o">=</span>gnu99 -fPIC -g -D_GNU_SOURCE
+... ...
+gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes<span class="se">\</span>
+-fPIC -I/usr/include/python2.6 -c src/range_iterator.c -o build/temp.linux-i686-2.6/src/range_iterator.o<span class="se">\</span>
+-Wall -pedantic -I./leveldb/include/ -shared -std<span class="o">=</span>gnu99 -fPIC -g -D_GNU_SOURCE
+gcc -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions build/temp.linux-i686-2.6/src/initmodule.o<span class="se">\</span>
+build/temp.linux-i686-2.6/src/leveldb.o build/temp.linux-i686-2.6/src/write_batch.o<span class="se">\</span>
+build/temp.linux-i686-2.6/src/iterator.o build/temp.linux-i686-2.6/src/snapshot.o<span class="se">\</span>
+build/temp.linux-i686-2.6/src/range_iterator.o -o build/lib.linux-i686-2.6/leveldb.so<span class="se">\</span>
+-L./leveldb -static -lleveldb -lsnappy -lpthread
+</pre></div>
+</div>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>The binding itself has no dependencies.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Building the LevelDB Python bindings</a><ul>
+<li><a class="reference external" href="#building-snappy">Building <tt class="docutils literal"><span class="pre">Snappy</span></tt></a></li>
+<li><a class="reference external" href="#building-leveldb">Building <tt class="docutils literal"><span class="pre">LevelDB</span></tt></a></li>
+<li><a class="reference external" href="#building-cpy-leveldb">Building <tt class="docutils literal"><span class="pre">cPy-LevelDB</span></tt></a></li>
+<li><a class="reference external" href="#dependencies">Dependencies</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="Tutorial.html"
+                                  title="previous chapter">cPy-LevelDB Tutorial</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="LevelDB.html"
+                                  title="next chapter">LevelDB Object</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/Building.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="LevelDB.html" title="LevelDB Object"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Tutorial.html" title="cPy-LevelDB Tutorial"
+             >previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Fu Haiping.
+      Last updated on Jan 24, 2012.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>

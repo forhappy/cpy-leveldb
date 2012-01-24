@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cPy-LevelDB Tutorial &mdash; cPy-LevelDB v0.4 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.4',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cPy-LevelDB v0.4 documentation" href="index.html" />
+    <link rel="next" title="Building the LevelDB Python bindings" href="Building.html" />
+    <link rel="prev" title="cPy-LevelDB Documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Building.html" title="Building the LevelDB Python bindings"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="cPy-LevelDB Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cpy-leveldb-tutorial">
+<h1>cPy-LevelDB Tutorial<a class="headerlink" href="#cpy-leveldb-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This document shows how to use LevelDB from Python. If you are not familiar with LevelDB,
+you will want to get a brief overview of the database and its example API. The official
+tutorial is a great place to start.</p>
+<p>Next, you will want to install and run LevelDB.</p>
+<p>A working Python program complete with examples from this tutorial can be
+found in the examples folder of the source distribution.</p>
+<div class="section" id="simple-api">
+<h2>Simple API<a class="headerlink" href="#simple-api" title="Permalink to this headline">¶</a></h2>
+<p>When writing programs with Python, you will be using four different
+entities: connections, iterators, snapshots, and writebatch.</p>
+<p>So, for instance, to create a new connection, start by allocating a <tt class="docutils literal"><span class="pre">LevelDB</span></tt> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span><span class="p">;</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="s">&quot;/tmp/test-leveldb&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, you can do some operations on the <tt class="docutils literal"><span class="pre">LevelDB</span></tt> object, such as <tt class="docutils literal"><span class="pre">Put</span></tt>,
+<tt class="docutils literal"><span class="pre">Get</span></tt>, <tt class="docutils literal"><span class="pre">Delete</span></tt> and so on:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="s">&quot;world&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set any optional values, like a block cache size, you can use a specific parameter when allocating a <tt class="docutils literal"><span class="pre">LevelDB</span></tt> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span><span class="p">;</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;/tmp/test-leveldb&quot;</span><span class="p">,</span> <span class="n">block_cache_size</span> <span class="o">=</span> <span class="mi">4096</span> <span class="o">*</span> <span class="mi">128</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="s">&quot;world&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When you are finished, close the <tt class="docutils literal"><span class="pre">LevelDB</span></tt> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span><span class="p">;</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="s">&quot;/tmp/test-leveldb&quot;</span><span class="p">)</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">do operations on the leveldb db.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="o">......</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>There are more details, but that is the basic pattern. Keep this in mind as you learn the API and start using the python package.</p>
+</div>
+<div class="section" id="constructing-a-leveldb-object-with-other-parameters">
+<h2>Constructing a LevelDB object with other parameters<a class="headerlink" href="#constructing-a-leveldb-object-with-other-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Let us start by that connects to the database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span>\
+    <span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;/tmp/test-leveldb&quot;</span><span class="p">,</span>\
+    <span class="n">create_if_missing</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>\
+    <span class="n">error_if_exists</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>\
+    <span class="n">paranoid_checks</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>\
+    <span class="n">write_buffer_size</span> <span class="o">=</span> <span class="mi">4096</span> <span class="o">*</span> <span class="mi">32</span><span class="p">,</span>\
+    <span class="n">block_size</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>\
+    <span class="n">block_restart_inteval</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>\
+    <span class="n">block_cache_size</span> <span class="o">=</span> <span class="mi">4096</span> <span class="o">*</span> <span class="mi">128</span><span class="p">,</span>\
+    <span class="n">compression</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s">&quot;this is item </span><span class="si">%d</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: lookup a item from map...&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;43&quot;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: ok&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="iteration">
+<h2>Iteration<a class="headerlink" href="#iteration" title="Permalink to this headline">¶</a></h2>
+<p>The following example demonstrates how to print key,value pairs in a database.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="s">&quot;/tmp/test-leveldb/&quot;</span><span class="p">)</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">WriteBatch</span><span class="p">();</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">batch</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s">&quot;hello, hello, hello string </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="n">i</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;Creating iterator&quot;</span>
+<span class="nb">iter</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">Iterator</span><span class="p">(</span><span class="n">db</span><span class="p">);</span>
+
+<span class="k">print</span> <span class="s">&quot;Seek to First.&quot;</span>
+<span class="nb">iter</span><span class="o">.</span><span class="n">First</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Print iterator&#39;s key&quot;</span>
+<span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Print iterator&#39;s value&quot;</span>
+<span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Value</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+<span class="k">print</span> <span class="s">&quot;Seek to next&quot;</span>
+<span class="nb">iter</span><span class="o">.</span><span class="n">Next</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Print iterator&#39;s key again&quot;</span>
+<span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Print iterator&#39;s value again&quot;</span>
+<span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Value</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+<span class="k">print</span> <span class="s">&quot;Seek to Last&quot;</span>
+<span class="nb">iter</span><span class="o">.</span><span class="n">Last</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Print iterator&#39;s key again&quot;</span>
+<span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Print iterator&#39;s value again&quot;</span>
+<span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Value</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+</pre></div>
+</div>
+<p>The following example show how to iterate all key-value pairs in a datebase.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="s">&quot;/tmp/test-leveldb/&quot;</span><span class="p">)</span>
+
+<span class="n">batch</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">WriteBatch</span><span class="p">();</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">batch</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s">&quot;hello, hello, hello string </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="n">i</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;Creating iterator&quot;</span>
+
+<span class="nb">iter</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">Iterator</span><span class="p">(</span><span class="n">db</span><span class="p">);</span>
+<span class="nb">iter</span><span class="o">.</span><span class="n">First</span><span class="p">()</span>
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">iter</span><span class="o">.</span><span class="n">Validate</span><span class="p">()):</span>
+        <span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span>
+        <span class="k">print</span> <span class="nb">iter</span><span class="o">.</span><span class="n">Value</span><span class="p">()</span>
+        <span class="nb">iter</span><span class="o">.</span><span class="n">Next</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+<p>The following variation shows how to process just the keys in the range [start,limit):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">leveldb</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">100</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: write </span><span class="si">%d</span><span class="s"> items to db..&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="s">&quot;./leveldb.db&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s">&quot;this is item </span><span class="si">%d</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: lookup items from map between range key_from to key_to...&quot;</span>\
+        <span class="o">%</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span>
+    <span class="k">print</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">RangeIter</span><span class="p">(</span><span class="n">key_from</span> <span class="o">=</span> <span class="s">&#39;80&#39;</span><span class="p">,</span> <span class="n">key_to</span> <span class="o">=</span> <span class="s">&#39;90&#39;</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: ok&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="synchronous-writes">
+<h2>Synchronous Writes<a class="headerlink" href="#synchronous-writes" title="Permalink to this headline">¶</a></h2>
+<p>By default, each write to <tt class="docutils literal"><span class="pre">LevelDB</span></tt> is asynchronous: it returns after pushing
+the write from the process into the operating system. The transfer from
+operating system memory to the underlying persistent storage happens
+asynchronously. The <tt class="docutils literal"><span class="pre">sync</span></tt> flag can be turned on for a particular write to make
+the write operation not return until the data being written has been pushed all
+the way to persistent storage. (On <tt class="docutils literal"><span class="pre">Posix</span></tt> systems, this is implemented by calling
+either <tt class="docutils literal"><span class="pre">fsync(...)</span></tt> or <tt class="docutils literal"><span class="pre">fdatasync(...)</span></tt> or <tt class="docutils literal"><span class="pre">msync(...,</span> <span class="pre">MS_SYNC)</span></tt> before the write
+operation returns.)</p>
+<p>Asynchronous writes are often more than a thousand times as fast as synchronous
+writes. The downside of asynchronous writes is that a crash of the machine may
+cause the last few updates to be lost. Note that a crash of just the writing
+process (i.e., not a reboot) will not cause any loss since even when <tt class="docutils literal"><span class="pre">sync</span></tt> is
+false, an update is pushed from the process memory into the operating system
+before it is considered done.</p>
+<p>Asynchronous writes can often be used safely. For example, when loading a large
+amount of data into the database you can handle lost updates by restarting the
+bulk load after a crash. A hybrid scheme is also possible where every Nth write
+is synchronous, and in the event of a crash, the bulk load is restarted just
+after the last synchronous write finished by the previous run. (The synchronous
+write can update a marker that describes where to restart on a crash.)</p>
+<p><tt class="docutils literal"><span class="pre">WriteBatch</span></tt> provides an alternative to asynchronous writes. Multiple updates may
+be placed in the same WriteBatch and applied together using a synchronous write
+The extra cost of the synchronous write will be amortized across all of the writes in the batch.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="s">&quot;/tmp/test-leveldb/&quot;</span><span class="p">)</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">WriteBatch</span><span class="p">();</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">batch</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s">&quot;hello, hello, hello string </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="n">i</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Print a string before WriteBatch takes effect. &quot;</span>
+<span class="k">print</span> <span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;888&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Print a string after WriteBatch takes effect. &quot;</span>
+<span class="k">print</span> <span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;888&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="snapshots">
+<h2>Snapshots<a class="headerlink" href="#snapshots" title="Permalink to this headline">¶</a></h2>
+<p>Snapshots provide consistent read-only views over the entire state of the key-value store.
+The following example shows how to work with <tt class="docutils literal"><span class="pre">Snapshot</span></tt> object.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">leveldb</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">LevelDB</span><span class="p">(</span><span class="s">&quot;/tmp/test-leveldb/&quot;</span><span class="p">)</span>
+
+<span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="s">&quot;world&quot;</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;1&quot;</span><span class="p">,</span> <span class="s">&quot;111111&quot;</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="s">&quot;222222&quot;</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;3&quot;</span><span class="p">,</span> <span class="s">&quot;333333&quot;</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;Creating snapshot.&quot;</span>
+<span class="n">snap</span> <span class="o">=</span> <span class="n">leveldb</span><span class="o">.</span><span class="n">Snapshot</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+<span class="k">print</span> <span class="s">&quot;Deleting key 1.&quot;</span>
+<span class="n">db</span><span class="o">.</span><span class="n">Delete</span><span class="p">(</span><span class="s">&quot;1&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+<span class="k">print</span> <span class="s">&quot;Getting key 1.&quot;</span>
+<span class="k">print</span> <span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;1&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+<span class="k">print</span> <span class="s">&quot;Applying snapshot.&quot;</span>
+<span class="n">snap</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+<span class="k">print</span> <span class="s">&quot;Getting key 1 again.&quot;</span>
+<span class="k">print</span> <span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;1&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+
+<span class="k">print</span> <span class="s">&quot;Resetting snapshot.&quot;</span>
+<span class="n">snap</span><span class="o">.</span><span class="n">Reset</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+
+<span class="k">print</span> <span class="s">&quot;Getting key 1 again.&quot;</span>
+<span class="k">print</span> <span class="n">db</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;1&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="c"># Need to release the Snapshot object.</span>
+<span class="n">snap</span><span class="o">.</span><span class="n">Release</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;O.K.&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="further-reading">
+<h2>Further Reading<a class="headerlink" href="#further-reading" title="Permalink to this headline">¶</a></h2>
+<p>This overview just touches on the basics of using LevelDB from Python. For more examples,
+check out the other documentation pages, and have a look at the package&#8217;s test cases.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">cPy-LevelDB Tutorial</a><ul>
+<li><a class="reference external" href="#simple-api">Simple API</a></li>
+<li><a class="reference external" href="#constructing-a-leveldb-object-with-other-parameters">Constructing a LevelDB object with other parameters</a></li>
+<li><a class="reference external" href="#iteration">Iteration</a></li>
+<li><a class="reference external" href="#synchronous-writes">Synchronous Writes</a></li>
+<li><a class="reference external" href="#snapshots">Snapshots</a></li>
+<li><a class="reference external" href="#further-reading">Further Reading</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">cPy-LevelDB Documentation</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="Building.html"
+                                  title="next chapter">Building the LevelDB Python bindings</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/Tutorial.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Building.html" title="Building the LevelDB Python bindings"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="cPy-LevelDB Documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Fu Haiping.
+      Last updated on Jan 24, 2012.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>

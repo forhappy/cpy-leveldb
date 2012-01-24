@@ -35,5 +35,6 @@ print "\n"
 print "Getting key 1 again."
 print db.Get("1")
 print "\n"
-
+# Release Snapshot object.
+snap.Release()
 print "O.K."

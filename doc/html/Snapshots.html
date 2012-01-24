@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Snapshots Object &mdash; cPy-LevelDB v0.4 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.4',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cPy-LevelDB v0.4 documentation" href="index.html" />
+    <link rel="next" title="WriteBatch Object" href="WriteBatch.html" />
+    <link rel="prev" title="Iteration Object" href="Iteration.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="WriteBatch.html" title="WriteBatch Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Iteration.html" title="Iteration Object"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="snapshots-object">
+<h1>Snapshots Object<a class="headerlink" href="#snapshots-object" title="Permalink to this headline">¶</a></h1>
+<p>Snapshots provide consistent read-only views over the entire state of the key-value store.</p>
+<div class="section" id="simple-usage">
+<h2>Simple Usage<a class="headerlink" href="#simple-usage" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="snapshots-api">
+<h2>Snapshots API<a class="headerlink" href="#snapshots-api" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="LevelDB.Snapshot">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Snapshot</tt><big>(</big><em>db</em><big>)</big><a class="headerlink" href="#LevelDB.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Construct a snapshot based on the current LevelDB state.</p>
+<dl class="method">
+<dt id="Snapshot.Set">
+<tt class="descclassname">Snapshot.</tt><tt class="descname">Set</tt><big>(</big><big>)</big><a class="headerlink" href="#Snapshot.Set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Set snapshot.</p>
+<dl class="method">
+<dt id="Snapshot.Reset">
+<tt class="descclassname">Snapshot.</tt><tt class="descname">Reset</tt><big>(</big><big>)</big><a class="headerlink" href="#Snapshot.Reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Reset snapshot to the current state.</p>
+<dl class="method">
+<dt id="Snapshot.Release">
+<tt class="descclassname">Snapshot.</tt><tt class="descname">Release</tt><big>(</big><big>)</big><a class="headerlink" href="#Snapshot.Release" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Release snapshot</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Snapshots Object</a><ul>
+<li><a class="reference external" href="#simple-usage">Simple Usage</a></li>
+<li><a class="reference external" href="#snapshots-api">Snapshots API</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="Iteration.html"
+                                  title="previous chapter">Iteration Object</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="WriteBatch.html"
+                                  title="next chapter">WriteBatch Object</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/Snapshots.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="WriteBatch.html" title="WriteBatch Object"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Iteration.html" title="Iteration Object"
+             >previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Fu Haiping.
+      Last updated on Jan 24, 2012.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>

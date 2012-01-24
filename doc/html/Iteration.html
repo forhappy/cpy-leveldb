@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Iteration Object &mdash; cPy-LevelDB v0.4 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.4',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cPy-LevelDB v0.4 documentation" href="index.html" />
+    <link rel="next" title="Snapshots Object" href="Snapshots.html" />
+    <link rel="prev" title="LevelDB Object" href="LevelDB.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Snapshots.html" title="Snapshots Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="LevelDB.html" title="LevelDB Object"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="iteration-object">
+<h1>Iteration Object<a class="headerlink" href="#iteration-object" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simple-usage">
+<h2>Simple Usage<a class="headerlink" href="#simple-usage" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="iterator-api">
+<h2>Iterator API<a class="headerlink" href="#iterator-api" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="LevelDB.Iterator">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Iterator</tt><big>(</big><em>leveldb</em><big>)</big><a class="headerlink" href="#LevelDB.Iterator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Construct an iterator based on the current LevelDB state.</p>
+<dl class="method">
+<dt id="Iterator.Validate">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Validate</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Validate whether an iterator is valid, it is useful to verify an iterator
+exceeding out of bounds.</p>
+<dl class="method">
+<dt id="Iterator.First">
+<tt class="descclassname">Iterator.</tt><tt class="descname">First</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.First" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Seek to <em>First</em> key-value pair.</p>
+<dl class="method">
+<dt id="Iterator.Last">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Last</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Last" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Seek to <em>Last</em> key-value pair.</p>
+<dl class="method">
+<dt id="Iterator.Seek">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Seek</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Seek" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Iterator seek, find the specified <tt class="docutils literal"><span class="pre">key</span></tt>.</p>
+<dl class="method">
+<dt id="Iterator.Next">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Next</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Iterator to Next.</p>
+<dl class="method">
+<dt id="Iterator.Prev">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Prev</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Prev" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Iterator to Prev.</p>
+<dl class="method">
+<dt id="Iterator.Key">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Key</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Get key throuth current iterator.</p>
+<dl class="method">
+<dt id="Iterator.Value">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Value</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Get value throuth current iterator.</p>
+<dl class="method">
+<dt id="Iterator.GetError">
+<tt class="descclassname">Iterator.</tt><tt class="descname">GetError</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.GetError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Get iterator error.</p>
+<dl class="method">
+<dt id="Iterator.Destroy">
+<tt class="descclassname">Iterator.</tt><tt class="descname">Destroy</tt><big>(</big><big>)</big><a class="headerlink" href="#Iterator.Destroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Destroy iterator.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Iteration Object</a><ul>
+<li><a class="reference external" href="#simple-usage">Simple Usage</a></li>
+<li><a class="reference external" href="#iterator-api">Iterator API</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="LevelDB.html"
+                                  title="previous chapter">LevelDB Object</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="Snapshots.html"
+                                  title="next chapter">Snapshots Object</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/Iteration.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Snapshots.html" title="Snapshots Object"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="LevelDB.html" title="LevelDB Object"
+             >previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Fu Haiping.
+      Last updated on Jan 24, 2012.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>

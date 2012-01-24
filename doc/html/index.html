@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cPy-LevelDB Documentation &mdash; cPy-LevelDB v0.4 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.4',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cPy-LevelDB v0.4 documentation" href="#" />
+    <link rel="next" title="cPy-LevelDB Tutorial" href="Tutorial.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Tutorial.html" title="cPy-LevelDB Tutorial"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cpy-leveldb-documentation">
+<h1>cPy-LevelDB Documentation<a class="headerlink" href="#cpy-leveldb-documentation" title="Permalink to this headline">¶</a></h1>
+<p>The cPy-LevelDB is a python binding for Google&#8217;s LevelDB.
+It is written in pure C and based on LevelDB&#8217;s c API. The goal is to be super strict
+for ultimate portability, no dependencies, and generic embeddability.</p>
+<p>The binding is still considered alpha but is undergoing active
+development.</p>
+<dl class="docutils">
+<dt><a class="reference external" href="Tutorial.html"><em>cPy-LevelDB Tutorial</em></a></dt>
+<dd>An overview of the python API for LevelDB.</dd>
+<dt><a class="reference external" href="Building.html"><em>Building the LevelDB Python bindings</em></a></dt>
+<dd>How to build the binding from source code.</dd>
+<dt><a class="reference external" href="LevelDB.html"><em>LevelDB Object</em></a></dt>
+<dd>How to use LevelDB object.</dd>
+<dt><a class="reference external" href="Iteration.html"><em>Iteration Object</em></a></dt>
+<dd>How to work with key-value iterator.</dd>
+<dt><a class="reference external" href="Snapshots.html"><em>Snapshots Object</em></a></dt>
+<dd>Snapshots provide consistent read-only views over the entire state of the key-value store.</dd>
+<dt><a class="reference external" href="WriteBatch.html"><em>WriteBatch Object</em></a></dt>
+<dd>The WriteBatch holds a sequence of edits to be made to the database, and these edits within the batch are applied in order.</dd>
+<dt><a class="reference external" href="api/index.html">API Docs</a></dt>
+<dd>Doxygen-generated API docs.</dd>
+<dt><a class="reference external" href="http://github.com/forhappy/cpy-leveldb">Source code</a></dt>
+<dd>The source code is hosted on GitHub.</dd>
+</dl>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="Tutorial.html">cPy-LevelDB Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference external" href="Tutorial.html#simple-api">Simple API</a></li>
+<li class="toctree-l2"><a class="reference external" href="Tutorial.html#constructing-a-leveldb-object-with-other-parameters">Constructing a LevelDB object with other parameters</a></li>
+<li class="toctree-l2"><a class="reference external" href="Tutorial.html#iteration">Iteration</a></li>
+<li class="toctree-l2"><a class="reference external" href="Tutorial.html#synchronous-writes">Synchronous Writes</a></li>
+<li class="toctree-l2"><a class="reference external" href="Tutorial.html#snapshots">Snapshots</a></li>
+<li class="toctree-l2"><a class="reference external" href="Tutorial.html#further-reading">Further Reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="Building.html">Building the LevelDB Python bindings</a><ul>
+<li class="toctree-l2"><a class="reference external" href="Building.html#building-snappy">Building <tt class="docutils literal"><span class="pre">Snappy</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="Building.html#building-leveldb">Building <tt class="docutils literal"><span class="pre">LevelDB</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="Building.html#building-cpy-leveldb">Building <tt class="docutils literal"><span class="pre">cPy-LevelDB</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="Building.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="LevelDB.html">LevelDB Object</a><ul>
+<li class="toctree-l2"><a class="reference external" href="LevelDB.html#simple-usage">Simple Usage</a></li>
+<li class="toctree-l2"><a class="reference external" href="LevelDB.html#leveldb-api">LevelDB API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="Iteration.html">Iteration Object</a><ul>
+<li class="toctree-l2"><a class="reference external" href="Iteration.html#simple-usage">Simple Usage</a></li>
+<li class="toctree-l2"><a class="reference external" href="Iteration.html#iterator-api">Iterator API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="Snapshots.html">Snapshots Object</a><ul>
+<li class="toctree-l2"><a class="reference external" href="Snapshots.html#simple-usage">Simple Usage</a></li>
+<li class="toctree-l2"><a class="reference external" href="Snapshots.html#snapshots-api">Snapshots API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="WriteBatch.html">WriteBatch Object</a><ul>
+<li class="toctree-l2"><a class="reference external" href="WriteBatch.html#simple-usage">Simple Usage</a></li>
+<li class="toctree-l2"><a class="reference external" href="WriteBatch.html#writebatch-api">WriteBatch API</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Next topic</h4>
+            <p class="topless"><a href="Tutorial.html"
+                                  title="next chapter">cPy-LevelDB Tutorial</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Tutorial.html" title="cPy-LevelDB Tutorial"
+             >next</a> |</li>
+        <li><a href="#">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Fu Haiping.
+      Last updated on Jan 24, 2012.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>

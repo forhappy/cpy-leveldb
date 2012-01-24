@@ -1,2 +1,3 @@
 See test/test-*.py for test suite and usage.
+See sphinx/* and build the docs for yourself.
 to be continued:)

@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LevelDB Object &mdash; cPy-LevelDB v0.4 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.4',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cPy-LevelDB v0.4 documentation" href="index.html" />
+    <link rel="next" title="Iteration Object" href="Iteration.html" />
+    <link rel="prev" title="Building the LevelDB Python bindings" href="Building.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Iteration.html" title="Iteration Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Building.html" title="Building the LevelDB Python bindings"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="leveldb-object">
+<h1>LevelDB Object<a class="headerlink" href="#leveldb-object" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simple-usage">
+<h2>Simple Usage<a class="headerlink" href="#simple-usage" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="leveldb-api">
+<h2>LevelDB API<a class="headerlink" href="#leveldb-api" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="leveldb.LevelDB">
+<tt class="descclassname">leveldb.</tt><tt class="descname">LevelDB</tt><big>(</big><em>filename</em><span class="optional">[</span>, <em>create_if_missing</em>, <em>error_if_exists</em>, <em>paranoid_checks</em>, <em>write_buffer_size</em>, <em>block_size</em>, <em>max_open_files</em>, <em>block_restart_interval</em>, <em>block_cache_size</em>, <em>compression</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#leveldb.LevelDB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Construct a connection to LevelDB datebase.Here are the parameters explaination:</p>
+<blockquote>
+<p><tt class="docutils literal"><span class="pre">filename</span></tt>: Specifing the datebase filename.</p>
+<p><tt class="docutils literal"><span class="pre">create_if_missing</span></tt>: If the datebase specified by <tt class="docutils literal"><span class="pre">filename</span></tt> does not exists, then create a new datebase.</p>
+<p><tt class="docutils literal"><span class="pre">error_if_exists</span></tt>: If the datebase specified by <tt class="docutils literal"><span class="pre">filename</span></tt> exits, then error occurs.</p>
+<p><tt class="docutils literal"><span class="pre">paranoid_checks</span></tt>: Period checks.</p>
+<p><tt class="docutils literal"><span class="pre">write_buffer_size</span></tt>: Specifing the write buffer size.</p>
+<p><tt class="docutils literal"><span class="pre">block_size</span></tt>: Specifing the block size.</p>
+<p><tt class="docutils literal"><span class="pre">max_open_files</span></tt>: Specifing the max number of files that can be opened.</p>
+<p><tt class="docutils literal"><span class="pre">block_restart_interval</span></tt>: Specifing the block restart interval.</p>
+<p><tt class="docutils literal"><span class="pre">block_cache_size</span></tt>: Specifing the block cache size.</p>
+<p><tt class="docutils literal"><span class="pre">compression</span></tt>: Specifing data compressed or not.</p>
+</blockquote>
+<dl class="method">
+<dt id="LevelDB.Put">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Put</tt><big>(</big><em>key</em>, <em>value</em><span class="optional">[</span>, <em>sync</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LevelDB.Put" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Add a key/value pair to database, with an optional synchronous disk write.</p>
+<dl class="method">
+<dt id="LevelDB.Get">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Get</tt><big>(</big><em>key</em><span class="optional">[</span>, <em>verify_checksums</em>, <em>fill_cache</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LevelDB.Get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Get a value from the database.</p>
+<dl class="method">
+<dt id="LevelDB.Delete">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Delete</tt><big>(</big><em>key</em><span class="optional">[</span>, <em>sync</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LevelDB.Delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Delete a value in the database.</p>
+<dl class="method">
+<dt id="LevelDB.Write">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Write</tt><big>(</big><em>writebach</em><span class="optional">[</span>, <em>sync</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LevelDB.Write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Apply a writebatch in database.</p>
+<dl class="method">
+<dt id="LevelDB.Property">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Property</tt><big>(</big><big>)</big><a class="headerlink" href="#LevelDB.Property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Get a property value.</p>
+<dl class="method">
+<dt id="LevelDB.RepairDB">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">RepairDB</tt><big>(</big><em>filename</em><span class="optional">[</span>, <em>create_if_missing</em>, <em>error_if_exists</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LevelDB.RepairDB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Repair database.</p>
+<dl class="method">
+<dt id="LevelDB.RangeIter">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">RangeIter</tt><big>(</big><em>key_from</em>, <em>key_to</em><span class="optional">[</span>, <em>verify_checksums</em>, <em>fill_cache</em>, <em>include_value</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LevelDB.RangeIter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Range iterator.</p>
+<dl class="method">
+<dt id="LevelDB.GetApproximateSizes">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">GetApproximateSizes</tt><big>(</big><em>num_ranges</em>, <em>range_start_key</em>, <em>range_limit_key</em><big>)</big><a class="headerlink" href="#LevelDB.GetApproximateSizes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Get approximate sizes.</p>
+<dl class="method">
+<dt id="LevelDB.Close">
+<tt class="descclassname">LevelDB.</tt><tt class="descname">Close</tt><big>(</big><big>)</big><a class="headerlink" href="#LevelDB.Close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Close database.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">LevelDB Object</a><ul>
+<li><a class="reference external" href="#simple-usage">Simple Usage</a></li>
+<li><a class="reference external" href="#leveldb-api">LevelDB API</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="Building.html"
+                                  title="previous chapter">Building the LevelDB Python bindings</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="Iteration.html"
+                                  title="next chapter">Iteration Object</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/LevelDB.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Iteration.html" title="Iteration Object"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Building.html" title="Building the LevelDB Python bindings"
+             >previous</a> |</li>
+        <li><a href="index.html">cPy-LevelDB v0.4 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Fu Haiping.
+      Last updated on Jan 24, 2012.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>
