@@ -1,7 +1,7 @@
 K 25
 svn:wc:ra_dav:version-url
 V 22
-/svn/!svn/ver/51/trunk
+/svn/!svn/ver/67/trunk
 END
 LICENSE
 K 25
@@ -21,11 +21,17 @@ svn:wc:ra_dav:version-url
 V 27
 /svn/!svn/ver/32/trunk/TODO
 END
+.gitignore
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/svn/!svn/ver/65/trunk/.gitignore
+END
 build_detect_platform
 K 25
 svn:wc:ra_dav:version-url
 V 44
-/svn/!svn/ver/40/trunk/build_detect_platform
+/svn/!svn/ver/66/trunk/build_detect_platform
 END
 NEWS
 K 25
@@ -43,5 +49,5 @@ Makefile
 K 25
 svn:wc:ra_dav:version-url
 V 31
-/svn/!svn/ver/51/trunk/Makefile
+/svn/!svn/ver/67/trunk/Makefile
 END

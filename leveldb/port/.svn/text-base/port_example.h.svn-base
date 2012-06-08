@@ -60,6 +60,16 @@ class CondVar {
   void SignallAll();
 };
 
+// Thread-safe initialization.
+// Used as follows:
+//      static port::OnceType init_control = LEVELDB_ONCE_INIT;
+//      static void Initializer() { ... do something ...; }
+//      ...
+//      port::InitOnce(&init_control, &Initializer);
+typedef intptr_t OnceType;
+#define LEVELDB_ONCE_INIT 0
+extern void InitOnce(port::OnceType*, void (*initializer)());
+
 // A type that holds a pointer that can be read or written atomically
 // (i.e., without word-tearing.)
 class AtomicPointer {
@@ -119,7 +129,7 @@ extern bool Snappy_Uncompress(const char* input_data, size_t input_length,
 // The concatenation of all "data[0,n-1]" fragments is the heap profile.
 extern bool GetHeapProfile(void (*func)(void*, const char*, int), void* arg);
 
-}
-}
+}  // namespace port
+}  // namespace leveldb
 
 #endif  // STORAGE_LEVELDB_PORT_PORT_EXAMPLE_H_

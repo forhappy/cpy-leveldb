@@ -12,6 +12,7 @@ namespace leveldb {
 class Cache;
 class Comparator;
 class Env;
+class FilterPolicy;
 class Logger;
 class Snapshot;
 
@@ -127,6 +128,13 @@ struct Options {
   // efficiently detect that and will switch to uncompressed mode.
   CompressionType compression;
 
+  // If non-NULL, use the specified filter policy to reduce disk reads.
+  // Many applications will benefit from passing the result of
+  // NewBloomFilterPolicy() here.
+  //
+  // Default: NULL
+  const FilterPolicy* filter_policy;
+
   // Create an Options object with default values for all fields.
   Options();
 };
@@ -177,24 +185,11 @@ struct WriteOptions {
   // Default: false
   bool sync;
 
-  // If "post_write_snapshot" is non-NULL, and the write succeeds,
-  // *post_write_snapshot will be modified to point to a snapshot of
-  // the DB state immediately after this write.  The caller must call
-  // DB::ReleaseSnapshot(*post_write_snapshotsnapshot) when the
-  // snapshot is no longer needed.
-  //
-  // If "post_write_snapshot" is non-NULL, and the write fails,
-  // *post_write_snapshot will be set to NULL.
-  //
-  // Default: NULL
-  const Snapshot** post_write_snapshot;
-
   WriteOptions()
-      : sync(false),
-        post_write_snapshot(NULL) {
+      : sync(false) {
   }
 };
 
-}
+}  // namespace leveldb
 
 #endif  // STORAGE_LEVELDB_INCLUDE_OPTIONS_H_

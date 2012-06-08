@@ -1,7 +1,7 @@
 K 25
 svn:wc:ra_dav:version-url
 V 26
-/svn/!svn/ver/48/trunk/doc
+/svn/!svn/ver/66/trunk/doc
 END
 impl.html
 K 25
@@ -19,7 +19,7 @@ index.html
 K 25
 svn:wc:ra_dav:version-url
 V 37
-/svn/!svn/ver/48/trunk/doc/index.html
+/svn/!svn/ver/65/trunk/doc/index.html
 END
 doc.css
 K 25
@@ -31,7 +31,7 @@ table_format.txt
 K 25
 svn:wc:ra_dav:version-url
 V 43
-/svn/!svn/ver/23/trunk/doc/table_format.txt
+/svn/!svn/ver/65/trunk/doc/table_format.txt
 END
 benchmark.html
 K 25

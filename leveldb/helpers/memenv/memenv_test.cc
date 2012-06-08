@@ -26,7 +26,7 @@ class MemEnvTest {
 };
 
 TEST(MemEnvTest, Basics) {
-  size_t file_size;
+  uint64_t file_size;
   WritableFile* writable_file;
   std::vector<std::string> children;
 
@@ -225,7 +225,7 @@ TEST(MemEnvTest, DBTest) {
   delete db;
 }
 
-}
+}  // namespace leveldb
 
 int main(int argc, char** argv) {
   return leveldb::test::RunAllTests();

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "leveldb/comparator.h"
 #include "leveldb/db.h"
+#include "leveldb/filter_policy.h"
 #include "leveldb/slice.h"
 #include "leveldb/table_builder.h"
 #include "util/coding.h"
@@ -37,7 +38,7 @@ static const int kL0_StopWritesTrigger = 12;
 // space if the same key space is being repeatedly overwritten.
 static const int kMaxMemCompactLevel = 2;
 
-}
+}  // namespace config
 
 class InternalKey;
 
@@ -123,6 +124,17 @@ class InternalKeyComparator : public Comparator {
   int Compare(const InternalKey& a, const InternalKey& b) const;
 };
 
+// Filter policy wrapper that converts from internal keys to user keys
+class InternalFilterPolicy : public FilterPolicy {
+ private:
+  const FilterPolicy* const user_policy_;
+ public:
+  explicit InternalFilterPolicy(const FilterPolicy* p) : user_policy_(p) { }
+  virtual const char* Name() const;
+  virtual void CreateFilter(const Slice* keys, int n, std::string* dst) const;
+  virtual bool KeyMayMatch(const Slice& key, const Slice& filter) const;
+};
+
 // Modules in this directory should keep internal keys wrapped inside
 // the following class instead of plain strings so that we do not
 // incorrectly use string comparisons instead of an InternalKeyComparator.
@@ -149,6 +161,8 @@ class InternalKey {
   }
 
   void Clear() { rep_.clear(); }
+
+  std::string DebugString() const;
 };
 
 inline int InternalKeyComparator::Compare(
@@ -208,6 +222,6 @@ inline LookupKey::~LookupKey() {
   if (start_ != space_) delete[] start_;
 }
 
-}
+}  // namespace leveldb
 
 #endif  // STORAGE_LEVELDB_DB_FORMAT_H_
