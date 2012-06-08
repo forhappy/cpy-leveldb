@@ -1,7 +1,7 @@
 K 25
 svn:wc:ra_dav:version-url
 V 22
-/svn/!svn/ver/50/trunk
+/svn/!svn/ver/63/trunk
 END
 snappy-stubs-public.h.in
 K 25
@@ -13,19 +13,19 @@ snappy-c.h
 K 25
 svn:wc:ra_dav:version-url
 V 33
-/svn/!svn/ver/27/trunk/snappy-c.h
+/svn/!svn/ver/63/trunk/snappy-c.h
 END
 snappy-sinksource.cc
 K 25
 svn:wc:ra_dav:version-url
 V 43
-/svn/!svn/ver/21/trunk/snappy-sinksource.cc
+/svn/!svn/ver/57/trunk/snappy-sinksource.cc
 END
 snappy-sinksource.h
 K 25
 svn:wc:ra_dav:version-url
 V 42
-/svn/!svn/ver/21/trunk/snappy-sinksource.h
+/svn/!svn/ver/57/trunk/snappy-sinksource.h
 END
 AUTHORS
 K 25
@@ -37,37 +37,37 @@ ChangeLog
 K 25
 svn:wc:ra_dav:version-url
 V 32
-/svn/!svn/ver/50/trunk/ChangeLog
-END
-README
-K 25
-svn:wc:ra_dav:version-url
-V 29
-/svn/!svn/ver/27/trunk/README
+/svn/!svn/ver/61/trunk/ChangeLog
 END
 snappy_unittest.cc
 K 25
 svn:wc:ra_dav:version-url
 V 41
-/svn/!svn/ver/48/trunk/snappy_unittest.cc
+/svn/!svn/ver/58/trunk/snappy_unittest.cc
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 29
+/svn/!svn/ver/52/trunk/README
 END
 snappy.cc
 K 25
 svn:wc:ra_dav:version-url
 V 32
-/svn/!svn/ver/44/trunk/snappy.cc
+/svn/!svn/ver/62/trunk/snappy.cc
 END
 snappy.h
 K 25
 svn:wc:ra_dav:version-url
 V 31
-/svn/!svn/ver/22/trunk/snappy.h
+/svn/!svn/ver/56/trunk/snappy.h
 END
 configure.ac
 K 25
 svn:wc:ra_dav:version-url
 V 35
-/svn/!svn/ver/50/trunk/configure.ac
+/svn/!svn/ver/61/trunk/configure.ac
 END
 snappy-stubs-internal.cc
 K 25
@@ -75,35 +75,41 @@ svn:wc:ra_dav:version-url
 V 47
 /svn/!svn/ver/20/trunk/snappy-stubs-internal.cc
 END
-snappy-stubs-internal.h
-K 25
-svn:wc:ra_dav:version-url
-V 46
-/svn/!svn/ver/49/trunk/snappy-stubs-internal.h
-END
 COPYING
 K 25
 svn:wc:ra_dav:version-url
 V 30
 /svn/!svn/ver/20/trunk/COPYING
 END
+snappy-stubs-internal.h
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/62/trunk/snappy-stubs-internal.h
+END
 format_description.txt
 K 25
 svn:wc:ra_dav:version-url
 V 45
-/svn/!svn/ver/45/trunk/format_description.txt
+/svn/!svn/ver/51/trunk/format_description.txt
 END
 Makefile.am
 K 25
 svn:wc:ra_dav:version-url
 V 34
-/svn/!svn/ver/36/trunk/Makefile.am
+/svn/!svn/ver/55/trunk/Makefile.am
+END
+framing_format.txt
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/55/trunk/framing_format.txt
 END
 snappy-internal.h
 K 25
 svn:wc:ra_dav:version-url
 V 40
-/svn/!svn/ver/22/trunk/snappy-internal.h
+/svn/!svn/ver/62/trunk/snappy-internal.h
 END
 autogen.sh
 K 25
@@ -115,19 +121,19 @@ snappy-test.cc
 K 25
 svn:wc:ra_dav:version-url
 V 37
-/svn/!svn/ver/35/trunk/snappy-test.cc
+/svn/!svn/ver/56/trunk/snappy-test.cc
 END
 NEWS
 K 25
 svn:wc:ra_dav:version-url
 V 27
-/svn/!svn/ver/50/trunk/NEWS
+/svn/!svn/ver/61/trunk/NEWS
 END
 snappy-test.h
 K 25
 svn:wc:ra_dav:version-url
 V 36
-/svn/!svn/ver/31/trunk/snappy-test.h
+/svn/!svn/ver/62/trunk/snappy-test.h
 END
 snappy-c.cc
 K 25
