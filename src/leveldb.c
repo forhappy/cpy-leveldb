@@ -696,7 +696,7 @@ PyMethodDef LevelDB_methods[] = {
 	{(char*)"Property",    (PyCFunction)LevelDB_Property,    METH_KEYWORDS, (char*)"get a property value" },
 	{(char*)"RepairDB",    (PyCFunction)LevelDB_RepairDB,    METH_KEYWORDS, (char*)"repair database" },
 	{(char*)"RangeIter",    (PyCFunction)LevelDB_RangeIter,    METH_KEYWORDS, (char*)"range iterator" },
-    //{(char*)"CompactRange", (PyCFunction)LevelDB_CompactRange,  METH_KEYWORDS, (char*)"range compact" },
+    {(char*)"CompactRange", (PyCFunction)LevelDB_CompactRange,  METH_KEYWORDS, (char*)"range compact" },
 	{(char*)"GetApproximateSizes",    (PyCFunction)LevelDB_ApproximateSizes,    METH_KEYWORDS, (char*)"get approximate sizes." },
 	{(char*)"Close",    (PyCFunction)LevelDB_Close,    METH_KEYWORDS, (char*)"close database" },
 	//{(char*)"Compare",    (PyCFunction)LevelDB_Compare,    METH_KEYWORDS, (char*)"compare two objects" },
