@@ -560,6 +560,37 @@ static PyObject* LevelDB_RangeIter(LevelDB* self, PyObject* args, PyObject* kwds
 	return RangeIterator_new(self, iter, s, (include_value == Py_True) ? 1 : 0);
 }
 
+static PyObject *LevelDB_CompactRange(LevelDB *self, PyObject *args, PyObject *kwds)
+{
+	const char *kwargs[] = {"range_start_key", "range_limit_key", 0};
+
+	char *err = NULL;
+
+	LEVELDB_DEFINE_KVBUF(start_key);
+	LEVELDB_DEFINE_KVBUF(limit_key);
+
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s#s#", \
+				(char**)kwargs, &s_start_key, &i_start_key, &s_limit_key, &i_limit_key)) {
+		return NULL;
+	}
+	Py_BEGIN_ALLOW_THREADS
+
+	leveldb_compact_range(self->_db, (const char *)s_start_key, (size_t)i_start_key, \
+			(const char *)s_limit_key, (size_t)i_limit_key);
+
+	Py_END_ALLOW_THREADS
+
+	if (err != NULL) {
+		PyErr_Format(LevelDBError, "error occurs when compact range:\n\t%s\n", err);
+		free(err);
+		return NULL;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyObject *LevelDB_ApproximateSizes(LevelDB *self, PyObject *args, PyObject *kwds)
 {
 	const char *kwargs[] = {"num_ranges", "range_start_key", "range_limit_key", 0};
@@ -665,6 +696,7 @@ PyMethodDef LevelDB_methods[] = {
 	{(char*)"Property",    (PyCFunction)LevelDB_Property,    METH_KEYWORDS, (char*)"get a property value" },
 	{(char*)"RepairDB",    (PyCFunction)LevelDB_RepairDB,    METH_KEYWORDS, (char*)"repair database" },
 	{(char*)"RangeIter",    (PyCFunction)LevelDB_RangeIter,    METH_KEYWORDS, (char*)"range iterator" },
+    //{(char*)"CompactRange", (PyCFunction)LevelDB_CompactRange,  METH_KEYWORDS, (char*)"range compact" },
 	{(char*)"GetApproximateSizes",    (PyCFunction)LevelDB_ApproximateSizes,    METH_KEYWORDS, (char*)"get approximate sizes." },
 	{(char*)"Close",    (PyCFunction)LevelDB_Close,    METH_KEYWORDS, (char*)"close database" },
 	//{(char*)"Compare",    (PyCFunction)LevelDB_Compare,    METH_KEYWORDS, (char*)"compare two objects" },
