@@ -3,30 +3,6 @@ svn:wc:ra_dav:version-url
 V 22
 /svn/!svn/ver/67/trunk
 END
-LICENSE
-K 25
-svn:wc:ra_dav:version-url
-V 30
-/svn/!svn/ver/23/trunk/LICENSE
-END
-AUTHORS
-K 25
-svn:wc:ra_dav:version-url
-V 30
-/svn/!svn/ver/23/trunk/AUTHORS
-END
-TODO
-K 25
-svn:wc:ra_dav:version-url
-V 27
-/svn/!svn/ver/32/trunk/TODO
-END
-.gitignore
-K 25
-svn:wc:ra_dav:version-url
-V 33
-/svn/!svn/ver/65/trunk/.gitignore
-END
 build_detect_platform
 K 25
 svn:wc:ra_dav:version-url
@@ -50,4 +26,28 @@ K 25
 svn:wc:ra_dav:version-url
 V 31
 /svn/!svn/ver/67/trunk/Makefile
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/23/trunk/LICENSE
+END
+AUTHORS
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/23/trunk/AUTHORS
+END
+TODO
+K 25
+svn:wc:ra_dav:version-url
+V 27
+/svn/!svn/ver/32/trunk/TODO
+END
+.gitignore
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/svn/!svn/ver/65/trunk/.gitignore
 END
