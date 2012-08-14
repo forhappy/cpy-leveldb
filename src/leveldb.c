@@ -5,7 +5,7 @@
  *
  *    Description:  python binding for leveldb based on c api.
  *
- *        Version:  0.4.0
+ *        Version:  0.4.2
  *        Created:  09/16/2011 05:44:40 PM
  *       Revision:  r20
  *       Compiler:  gcc
