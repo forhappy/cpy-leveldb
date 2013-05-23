@@ -1,20 +1,25 @@
-/*
- * =============================================================================
+/**
+ * cpy-leveldb: Python bindings for leveldb using leveldb c api
+ * (http://code.google.com/p/leveldb/)
  *
- *       Filename:  range_iterator.c
+ * Copyright (C) 2011-2013  Fu Haiping (haipingf@gmail.com)
  *
- *    Description:  range iterator implementation.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- *        Version:  0.0.1
- *        Created:  01/22/2012 12:15:46 PM
- *       Revision:  r1
- *       Compiler:  gcc (Ubuntu/Linaro 4.4.4-14ubuntu5) 4.4.5
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- *         Author:  Fu Haiping (forhappy), haipingf@gmail.com
- *        Company:  ICT ( Institute Of Computing Technology, CAS )
- *
- * =============================================================================
- */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301 USA
+ **/
+
 #include "leveldb.h"
 #include "range_iterator.h"
 
