@@ -29,16 +29,13 @@ static void LevelDB_dealloc(LevelDB* self)
 	_XDECREF(self->_options);
 	_XDECREF(self->_cache);
 	_XDECREF(self->_env);
-
 	_XDECREF(self->_roptions);
-
 	Py_END_ALLOW_THREADS
 
 	self->_db = NULL;
 	self->_options = NULL;
 	self->_cache = NULL;
 	self->_env = NULL;
-
 	self->_roptions = NULL;
 
 	self->ob_type->tp_free((PyObject *)self);
@@ -53,7 +50,6 @@ static PyObject* LevelDB_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-
 		self->_roptions = NULL;
 	}
 
@@ -71,15 +67,13 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 		_XDECREF(self->_options);
 		_XDECREF(self->_cache);
 		_XDECREF(self->_env);
-
 		_XDECREF(self->_roptions);
-
 		Py_END_ALLOW_THREADS
+
 		self->_db = NULL;
 		self->_options = NULL;
 		self->_cache = NULL;
 		self->_env = NULL;
-
 		self->_roptions = NULL;
 	}
 
@@ -94,10 +88,13 @@ static int LevelDB_init(LevelDB* self, PyObject* args, PyObject* kwds)
 	int max_open_files = 1000;
 	int block_restart_interval = 16;
 	PyObject *compression = Py_False;
-	const char* kwargs[] = {"filename", "create_if_missing", "error_if_exists", "paranoid_checks", "write_buffer_size", "block_size", "max_open_files", "block_restart_interval", "block_cache_size", "compression", 0};
+	const char* kwargs[] = {"filename", "create_if_missing",
+        "error_if_exists", "paranoid_checks", "write_buffer_size",
+        "block_size", "max_open_files", "block_restart_interval",
+        "block_cache_size", "compression", 0};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s|O!O!O!iiiiiO!", (char**)kwargs,
-		&db_dir,
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, (char*)"s|O!O!O!iiiiiO!",
+                (char**)kwargs, &db_dir,
 		&PyBool_Type, &create_if_missing,
 		&PyBool_Type, &error_if_exists,
 		&PyBool_Type, &paranoid_checks,
